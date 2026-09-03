@@ -9,29 +9,19 @@
   <link rel="stylesheet" href="{% static 'portafoliosapp/css/style.css' %}">
 </head>
 <body>
-  <main class="container">
-    <header class="hero">
-      <h1 class="name">{{ name }}</h1>
-      <h2 class="role">{{ role }}</h2>
-      <p class="intro">{{ intro }}</p>
-      <div class="contact">
-        <span>{{ contact.email }}</span> · <span>{{ contact.location }}</span>
-      </div>
-    </header>
+  <script>var BUBBLES = {{ bubbles_json|safe }};</script>
 
-    <section class="skills">
-      <h3>Habilidades</h3>
-      <ul class="skills-list">
-        {% for skill in skills %}
-        <li class="skill-item">{{ skill }}</li>
-        {% endfor %}
-      </ul>
-    </section>
+  <section id="universe" class="universe">
+    <canvas id="stars"></canvas>
+    <div id="bubble-scene" class="bubble-scene" aria-hidden="false"></div>
+    <div id="detail-panel" class="detail-panel" aria-hidden="true">
+      <button id="close-detail" aria-label="Cerrar">✕</button>
+      <div id="detail-content"></div>
+    </div>
+  </section>
 
-    <section class="about">
-      <h3>Resumen</h3>
-      <p>Este espacio muestra una versión mejorada de mi CV: proyectos, experiencia y contactos. Edita el contenido desde la vista o la plantilla para personalizarlo.</p>
-    </section>
+  <main class="cv-container">
+    <!-- Header removed: interactive universe is the main view -->
   </main>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
