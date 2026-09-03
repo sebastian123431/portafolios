@@ -1,0 +1,40 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Portafolio - {{ name }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'portafoliosapp/css/style.css' %}">
+</head>
+<body>
+  <main class="container">
+    <header class="hero">
+      <h1 class="name">{{ name }}</h1>
+      <h2 class="role">{{ role }}</h2>
+      <p class="intro">{{ intro }}</p>
+      <div class="contact">
+        <span>{{ contact.email }}</span> · <span>{{ contact.location }}</span>
+      </div>
+    </header>
+
+    <section class="skills">
+      <h3>Habilidades</h3>
+      <ul class="skills-list">
+        {% for skill in skills %}
+        <li class="skill-item">{{ skill }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="about">
+      <h3>Resumen</h3>
+      <p>Este espacio muestra una versión mejorada de mi CV: proyectos, experiencia y contactos. Edita el contenido desde la vista o la plantilla para personalizarlo.</p>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <script src="{% static 'portafoliosapp/js/main.js' %}"></script>
+</body>
+</html>
