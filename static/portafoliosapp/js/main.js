@@ -36,6 +36,31 @@
     }
   );
 
+  function installSensitiveProtection() {
+    document.addEventListener("keydown", (event) => {
+      const copyKeys = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c";
+      const inspectKeys = (event.ctrlKey || event.shiftKey) && event.key.toLowerCase() === "i";
+      const screenshotKey = event.key === "PrintScreen";
+      if (copyKeys || inspectKeys || screenshotKey) {
+        event.preventDefault();
+      }
+    });
+
+    document.addEventListener("contextmenu", (event) => {
+      if (event.target && event.target.closest("[data-sensitive]")) {
+        event.preventDefault();
+      }
+    });
+
+    document.addEventListener("dragstart", (event) => {
+      if (event.target && event.target.closest("[data-sensitive]")) {
+        event.preventDefault();
+      }
+    });
+  }
+
+  installSensitiveProtection();
+
   if (!scene || !bubbles.length) return;
 
   document.documentElement.classList.toggle("perf-lite", performanceLite);
@@ -977,6 +1002,18 @@
         </div>
       `
       : "";
+    const secretValue = data.secret_value || null;
+    const secretHTML = secretValue
+      ? `
+        <section class="detail-section" aria-label="Información protegida">
+          <div class="detail-section-heading"><i class="bi bi-shield-lock" aria-hidden="true"></i> INFORMACIÓN PROTEGIDA</div>
+          <div class="sensitive-panel" data-sensitive data-secret-value="${escapeHTML(secretValue)}" data-secret-kind="${escapeHTML(data.secret_kind || "value")}">
+            <span class="sensitive-output">Valor protegido. Haz clic para mostrarlo.</span>
+            <button class="sensitive-reveal" type="button" data-reveal-secret>Mostrar</button>
+          </div>
+        </section>
+      `
+      : "";
     const relatedProject = data.related_project || null;
     const projectCardHTML = relatedProject || data.href
       ? `
@@ -1076,6 +1113,7 @@
       ${renderEvidence(data)}
       ${renderGallery(data)}
       ${noteHTML}
+      ${secretHTML}
       ${projectCardHTML}
       ${actionHTML}
       ${itemHTML ? `<div class="detail-grid">${itemHTML}</div>` : ""}
@@ -1097,6 +1135,54 @@
     content.querySelectorAll("[data-related-project]").forEach((projectButton) => {
       projectButton.addEventListener("click", () => {
         if (relatedProject) showPanel(relatedProject);
+      });
+    });
+
+    content.querySelectorAll("[data-reveal-secret]").forEach((revealButton) => {
+      revealButton.addEventListener("click", async () => {
+        const panelNode = revealButton.closest("[data-sensitive]");
+        const output = panelNode?.querySelector(".sensitive-output");
+        const token = panelNode?.dataset.secretValue;
+        if (!panelNode || !output || !token) return;
+
+        revealButton.disabled = true;
+        revealButton.textContent = "Leyendo...";
+
+        try {
+          const response = await fetch("/api/reveal-contact/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")?.value || "",
+            },
+            body: JSON.stringify({ token }),
+          });
+
+          const payload = await response.json();
+          if (!response.ok || !payload.value) {
+            throw new Error("No autorizado");
+          }
+
+          const kind = panelNode.dataset.secretKind || "value";
+          const safeValue = payload.value;
+          const finalHTML = kind === "email"
+            ? `<a href="mailto:${escapeHTML(safeValue)}">${escapeHTML(safeValue)}</a>`
+            : kind === "phone"
+              ? `<a href="tel:${escapeHTML(safeValue)}">${escapeHTML(safeValue)}</a>`
+              : kind === "cv"
+                ? `<a href="${escapeHTML(safeValue)}" target="_blank" rel="noopener">Abrir CV</a>`
+                : kind === "linkedin"
+                  ? `<a href="${escapeHTML(safeValue)}" target="_blank" rel="noopener">${escapeHTML(safeValue)}</a>`
+                  : escapeHTML(safeValue);
+
+          output.innerHTML = finalHTML;
+          panelNode.classList.add("revealed");
+          revealButton.remove();
+        } catch (error) {
+          output.textContent = "No disponible";
+          revealButton.textContent = "Intentar otra vez";
+          revealButton.disabled = false;
+        }
       });
     });
 

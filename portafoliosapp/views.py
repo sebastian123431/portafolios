@@ -1,6 +1,26 @@
-from django.shortcuts import render
-from urllib.parse import quote_plus
 import json
+from urllib.parse import quote_plus
+
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_POST
+
+from portafoliosapp.security import decrypt_value, encrypt_value
+
+
+@csrf_protect
+@require_POST
+def reveal_contact(request):
+    try:
+        payload = json.loads(request.body or "{}")
+        token = payload.get("token")
+        if not token:
+            return JsonResponse({"error": "Token requerido"}, status=400)
+        value = decrypt_value(token)
+        return JsonResponse({"value": value})
+    except Exception:
+        return JsonResponse({"error": "No autorizado"}, status=403)
 
 
 def index(request):
@@ -15,6 +35,11 @@ def index(request):
     controlbins_logo = "/static/portafoliosapp/images/controlbins-logo.png"
     cv_url = "/static/portafoliosapp/docs/cv-sebastian-espindola.pdf"
 
+    encrypted_email = encrypt_value("seba501090@gmail.com")
+    encrypted_phone = encrypt_value("+56 9 5380 4158")
+    encrypted_linkedin = encrypt_value(linkedin_url)
+    encrypted_cv = encrypt_value(cv_url)
+
     context = {
         "name": "Sebastián Espíndola",
         "role": "Desarrollador Backend Python/Django y Full Stack",
@@ -28,12 +53,18 @@ def index(request):
             "los flujos que los equipos ya usaban para que la adopción fuera natural."
         ),
         "contact": {
-            "email": "seba501090@gmail.com",
-            "phone": "+56 9 5380 4158",
+            "email": encrypted_email,
+            "phone": encrypted_phone,
             "location": "Vicuña, Coquimbo, Chile",
             "linkedin": linkedin_url,
             "linkedin_qr": linkedin_qr,
             "cv": cv_url,
+        },
+        "contact_protected": {
+            "email": encrypted_email,
+            "phone": encrypted_phone,
+            "linkedin": encrypted_linkedin,
+            "cv": encrypted_cv,
         },
         "experience": {
             "title": "Asistente de Informática",
@@ -586,11 +617,11 @@ def index(request):
             "icon": "bi-send",
             "content": "Actualmente busco nuevas oportunidades en desarrollo de software, automatización de procesos y áreas afines.",
             "children": [
-                {"label": "Email", "icon": "bi-envelope", "text": f'{context["contact"]["email"]}. Canal directo para oportunidades laborales, entrevistas o coordinación profesional.', "href": f'mailto:{context["contact"]["email"]}'},
-                {"label": "Teléfono", "icon": "bi-telephone", "text": f'{context["contact"]["phone"]}. Disponible para coordinación laboral y contacto rápido dentro de Chile.', "href": "tel:+56953804158"},
+                {"label": "Email", "icon": "bi-envelope", "text": "Información protegida. Haz clic para revelar el correo.", "secret_value": encrypted_email, "secret_kind": "email", "href": "#"},
+                {"label": "Teléfono", "icon": "bi-telephone", "text": "Información protegida. Haz clic para revelar el teléfono.", "secret_value": encrypted_phone, "secret_kind": "phone", "href": "#"},
                 {"label": "Ubicación", "icon": "bi-geo-alt", "text": f'{context["contact"]["location"]}. Base actual en la Región de Coquimbo, con interés en oportunidades remotas, híbridas o presenciales según el proyecto.'},
-                {"label": "LinkedIn", "icon": "bi-linkedin", "text": "Perfil profesional para revisar trayectoria, contacto y actualizaciones laborales.", "href": linkedin_url},
-                {"label": "Descargar CV", "icon": "bi-file-earmark-arrow-down", "text": "CV actualizado en PDF con experiencia, formación, habilidades técnicas y datos de contacto.", "href": cv_url},
+                {"label": "LinkedIn", "icon": "bi-linkedin", "text": "Perfil profesional para revisar trayectoria, contacto y actualizaciones laborales.", "href": linkedin_url, "secret_value": encrypted_linkedin, "secret_kind": "linkedin"},
+                {"label": "Descargar CV", "icon": "bi-file-earmark-arrow-down", "text": "CV protegido. Haz clic para revelar el acceso al documento.", "secret_value": encrypted_cv, "secret_kind": "cv", "href": "#"},
             ],
         },
         {

@@ -112,6 +112,57 @@ h1 {
   text-shadow: 0 0 26px rgba(53, 242, 167, 0.2);
 }
 
+[data-sensitive] {
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+[data-sensitive].revealed {
+  user-select: text;
+  -webkit-user-select: text;
+  -ms-user-select: text;
+}
+
+.sensitive-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.8rem;
+  border: 1px solid rgba(53, 242, 167, 0.22);
+  border-radius: 0.45rem;
+  padding: 0.65rem 0.8rem;
+  background: rgba(53, 242, 167, 0.06);
+}
+
+.sensitive-output {
+  display: block;
+  min-width: 0;
+  color: rgba(244, 255, 249, 0.75);
+  font-size: 0.76rem;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.sensitive-output a {
+  color: var(--green);
+  text-decoration: none;
+}
+
+.sensitive-reveal {
+  border: 1px solid rgba(53, 242, 167, 0.34);
+  border-radius: 0.35rem;
+  padding: 0.42rem 0.7rem;
+  background: rgba(53, 242, 167, 0.08);
+  color: var(--green);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
 .contact-link {
   pointer-events: auto;
   display: inline-flex;

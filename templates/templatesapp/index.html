@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="{% static 'portafoliosapp/css/style.css' %}">
 </head>
 <body>
+  {% csrf_token %}
   <script>var BUBBLES = {{ bubbles_json|safe }};</script>
 
   <section id="universe" class="universe">
