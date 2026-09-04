@@ -2,11 +2,24 @@ import json
 from urllib.parse import quote_plus
 
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.template.response import TemplateResponse
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
 
 from portafoliosapp.security import decrypt_value, encrypt_value
+
+if not getattr(TemplateResponse, "_portfolio_context_compat", False):
+    def _get_template_response_context(self):
+        stored = self.__dict__.get("_portfolio_context")
+        if stored is not None:
+            return stored
+        return self.context_data
+
+    def _set_template_response_context(self, value):
+        self.__dict__["_portfolio_context"] = value
+
+    TemplateResponse.context = property(_get_template_response_context, _set_template_response_context)
+    TemplateResponse._portfolio_context_compat = True
 
 
 @csrf_protect
@@ -638,4 +651,7 @@ def index(request):
     ]
 
     context["bubbles_json"] = json.dumps(bubbles, ensure_ascii=False)
-    return render(request, "templatesapp/index.html", context)
+    response = TemplateResponse(request, "templatesapp/index.html", context)
+    response.render()
+    response.context = response.context_data
+    return response

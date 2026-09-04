@@ -20,6 +20,13 @@
   box-sizing: border-box;
 }
 
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+  -webkit-touch-callout: none;
+  pointer-events: auto;
+}
+
 html,
 body {
   min-height: 100%;
@@ -28,11 +35,33 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+::selection {
+  background: rgba(24, 216, 255, 0.12);
+  color: var(--text);
 }
 
 button,
 a {
   font: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body * {
+  -webkit-user-drag: none;
+}
+
+body .allow-select,
+body .allow-select * {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 }
 
 .universe {
@@ -106,7 +135,7 @@ a {
 h1 {
   margin: 0;
   font-family: "Space Grotesk", Inter, sans-serif;
-  font-size: clamp(1.35rem, 3vw, 2.65rem);
+  font-size: clamp(1.2rem, 2.2vw, 2.2rem);
   line-height: 0.95;
   letter-spacing: 0;
   text-shadow: 0 0 26px rgba(53, 242, 167, 0.2);
@@ -389,17 +418,20 @@ body.modal-open .bubble.is-floating {
   position: relative;
   z-index: 2;
   display: grid;
-  gap: 0.24rem;
+  gap: clamp(0.14rem, calc(var(--bubble-size) * 0.04), 0.32rem);
   place-items: center;
+  align-content: center;
   width: 100%;
-  padding: 0.68rem;
+  max-width: calc(var(--bubble-size) - 0.9rem);
+  padding: clamp(0.36rem, calc(var(--bubble-size) * 0.1), 0.82rem);
   text-align: center;
 }
 
 .bubble .icon {
   display: grid;
-  min-width: 2.55rem;
-  height: 2.55rem;
+  width: clamp(1.9rem, calc(var(--bubble-size) * 0.32), 3.4rem);
+  height: clamp(1.9rem, calc(var(--bubble-size) * 0.32), 3.4rem);
+  min-width: clamp(1.9rem, calc(var(--bubble-size) * 0.32), 3.4rem);
   place-items: center;
   border: 2px solid color-mix(in srgb, var(--bubble-color), white 18%);
   border-radius: 0.75rem;
@@ -407,7 +439,7 @@ body.modal-open .bubble.is-floating {
   color: color-mix(in srgb, var(--bubble-color), white 24%);
   font-family: "bootstrap-icons" !important;
   font-style: normal;
-  font-size: 0.86rem;
+  font-size: clamp(0.7rem, calc(var(--bubble-size) * 0.22), 1.04rem);
   font-weight: 400;
   letter-spacing: 0;
   line-height: 1;
@@ -424,10 +456,10 @@ body.modal-open .bubble.is-floating {
 
 .bubble .label {
   display: -webkit-box;
-  max-width: 7rem;
+  max-width: calc(var(--bubble-size) * 0.68);
   overflow: hidden;
   color: #fff;
-  font-size: clamp(0.72rem, 0.82vw, 0.9rem);
+  font-size: clamp(0.58rem, calc(var(--bubble-size) * 0.14), 0.92rem);
   font-weight: 900;
   line-height: 1.02;
   text-overflow: ellipsis;
@@ -436,22 +468,24 @@ body.modal-open .bubble.is-floating {
 }
 
 .bubble .micro {
-  max-width: 6.5rem;
+  display: -webkit-box;
+  max-width: calc(var(--bubble-size) * 0.62);
   overflow: hidden;
-  color: rgba(244, 255, 249, 0.64);
-  font-size: clamp(0.5rem, 0.62vw, 0.64rem);
+  color: rgba(244, 255, 249, 0.7);
+  font-size: clamp(0.42rem, calc(var(--bubble-size) * 0.08), 0.7rem);
   font-weight: 800;
-  line-height: 1.05;
+  line-height: 1.08;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .bubble .node-meta {
   color: color-mix(in srgb, var(--bubble-color), white 18%);
   font-family: "Space Grotesk", Inter, sans-serif;
-  max-width: 6.5rem;
+  max-width: calc(var(--bubble-size) * 0.7);
   overflow: hidden;
-  font-size: clamp(0.42rem, 0.5vw, 0.56rem);
+  font-size: clamp(0.32rem, calc(var(--bubble-size) * 0.065), 0.56rem);
   font-weight: 900;
   letter-spacing: 0.11em;
   line-height: 1;
@@ -483,10 +517,10 @@ body.modal-open .bubble.is-floating {
 }
 
 .bubble.center .icon {
-  min-width: clamp(2.8rem, 4vw, 3.35rem);
-  height: clamp(2.8rem, 4vw, 3.35rem);
+  width: clamp(2.4rem, calc(var(--bubble-size) * 0.2), 3.3rem);
+  min-width: clamp(2.4rem, calc(var(--bubble-size) * 0.2), 3.3rem);
+  height: clamp(2.4rem, calc(var(--bubble-size) * 0.2), 3.3rem);
   border-radius: 1rem;
-  font-size: 0.98rem;
 }
 
 .bubble.primary {
@@ -495,8 +529,9 @@ body.modal-open .bubble.is-floating {
 }
 
 .bubble.primary .icon {
-  min-width: clamp(2.35rem, min(3.8vw, 6vh), 3.35rem);
-  height: clamp(2.35rem, min(3.8vw, 6vh), 3.35rem);
+  width: clamp(2rem, calc(var(--bubble-size) * 0.26), 3rem);
+  min-width: clamp(2rem, calc(var(--bubble-size) * 0.26), 3rem);
+  height: clamp(2rem, calc(var(--bubble-size) * 0.26), 3rem);
   border-radius: 999px;
 }
 
@@ -506,46 +541,46 @@ body.modal-open .bubble.is-floating {
 }
 
 .bubble.child .icon {
-  min-width: clamp(2.6rem, min(4.8vw, 7.5vh), 4rem);
-  height: clamp(2.6rem, min(4.8vw, 7.5vh), 4rem);
+  width: clamp(2.1rem, calc(var(--bubble-size) * 0.3), 3.4rem);
+  min-width: clamp(2.1rem, calc(var(--bubble-size) * 0.3), 3.4rem);
+  height: clamp(2.1rem, calc(var(--bubble-size) * 0.3), 3.4rem);
   border-radius: 999px;
-  font-size: 0.82rem;
   letter-spacing: 0.04em;
 }
 
 .bubble.child .label {
-  max-width: 6.7rem;
+  max-width: calc(var(--bubble-size) * 0.72);
 }
 
 .center-name {
   font-family: "Space Grotesk", Inter, sans-serif;
-  max-width: 9.4rem;
-  font-size: clamp(1.05rem, 1.55vw, 1.55rem);
+  max-width: calc(var(--bubble-size) * 0.72);
+  font-size: clamp(0.96rem, calc(var(--bubble-size) * 0.22), 1.55rem);
   font-weight: 900;
   line-height: 0.96;
 }
 
 .center-tagline {
-  max-width: 9.2rem;
+  max-width: calc(var(--bubble-size) * 0.72);
   color: #fff;
-  font-size: clamp(0.58rem, 0.72vw, 0.74rem);
+  font-size: clamp(0.52rem, calc(var(--bubble-size) * 0.1), 0.76rem);
   font-weight: 900;
   line-height: 1.12;
 }
 
 .center-title {
-  max-width: 9.4rem;
+  max-width: calc(var(--bubble-size) * 0.72);
   color: rgba(244, 255, 249, 0.74);
-  font-size: clamp(0.54rem, 0.68vw, 0.7rem);
+  font-size: clamp(0.48rem, calc(var(--bubble-size) * 0.08), 0.7rem);
   font-weight: 800;
   line-height: 1.08;
 }
 
 .center-subtitle {
   display: none;
-  max-width: 9.4rem;
+  max-width: calc(var(--bubble-size) * 0.72);
   color: rgba(244, 255, 249, 0.66);
-  font-size: 0.72rem;
+  font-size: clamp(0.48rem, calc(var(--bubble-size) * 0.08), 0.72rem);
   font-weight: 700;
   line-height: 1.25;
 }
@@ -681,7 +716,10 @@ body.modal-open .bubble.is-floating {
 }
 
 .bubble.child.module-child .micro {
-  display: none;
+  display: -webkit-box;
+  max-width: 5.1rem;
+  font-size: clamp(0.38rem, 0.48vw, 0.52rem);
+  line-height: 1.1;
 }
 
 .detail-panel {
@@ -1140,6 +1178,47 @@ body.modal-open .bubble.is-floating {
   color: rgba(244, 255, 249, 0.74);
   font-size: 0.72rem;
   font-weight: 800;
+}
+
+.certificate-gate {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 0.8rem;
+  border: 1px solid rgba(53, 242, 167, 0.22);
+  border-radius: 0.5rem;
+  padding: 0.8rem;
+  background: rgba(53, 242, 167, 0.04);
+}
+
+.certificate-gate-copy {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.certificate-gate-copy strong {
+  color: var(--text);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.certificate-gate-copy span {
+  color: rgba(244, 255, 249, 0.7);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.certificate-reveal {
+  border: 1px solid rgba(53, 242, 167, 0.34);
+  border-radius: 0.35rem;
+  padding: 0.7rem 0.9rem;
+  background: rgba(53, 242, 167, 0.08);
+  color: var(--green);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
 .sync-simulation {
@@ -2352,9 +2431,14 @@ html.perf-lite .connector-node {
 
   .viewport-phone:not(.viewport-portrait) body.children-panel.panel-open .bubble-scene,
   .viewport-phone:not(.viewport-portrait) body.children-panel.panel-open .data-lines {
-    /* reduce width to leave room for right-side panel */
+    /* reduce width to leave room for the right-side panel only when it is expanded */
     width: calc(var(--viewport-width, 100vw) - min(34vw, var(--panel-width)) - 1rem);
     height: var(--viewport-height, 100svh);
+  }
+
+  .viewport-phone:not(.viewport-portrait) body.children-panel.panel-open.panel-collapsed .bubble-scene,
+  .viewport-phone:not(.viewport-portrait) body.children-panel.panel-open.panel-collapsed .data-lines {
+    width: var(--viewport-width, 100vw);
   }
 
   .viewport-phone:not(.viewport-portrait) body.children-panel .detail-panel::after { display: none; }
@@ -2368,12 +2452,10 @@ html.perf-lite .connector-node {
      collapsed behavior so the scene can use the full viewport height and
      avoid leaving the stage artificially short. */
   body.panel-open.panel-collapsed .bubble-scene,
-  body.panel-open.panel-collapsed .data-lines {
-    height: var(--viewport-height, 100svh);
-  }
-
+  body.panel-open.panel-collapsed .data-lines,
   body.panel-collapsed .bubble-scene,
   body.panel-collapsed .data-lines {
+    width: var(--viewport-width, 100vw);
     height: var(--viewport-height, 100svh);
   }
 
@@ -2571,9 +2653,26 @@ html.perf-lite .connector-node {
     height: 5.35rem !important;
   }
 
+  .viewport-phone.viewport-portrait .module-frame {
+    top: 41%;
+    width: min(calc(var(--viewport-width, 100vw) - 2.15rem), 18rem);
+    height: min(29vh, 14rem);
+  }
+
+  .viewport-phone.viewport-portrait .module-parent {
+    width: 4.75rem !important;
+    height: 4.75rem !important;
+    top: 42%;
+  }
+
   .bubble.child.module-child {
     width: var(--module-child-size, clamp(4.2rem, min(15vw, 9vh), 5.35rem)) !important;
     height: var(--module-child-size, clamp(4.2rem, min(15vw, 9vh), 5.35rem)) !important;
+  }
+
+  .viewport-phone.viewport-portrait .bubble.child.module-child {
+    width: var(--module-child-size, clamp(3.6rem, min(12vw, 7vh), 4.4rem)) !important;
+    height: var(--module-child-size, clamp(3.6rem, min(12vw, 7vh), 4.4rem)) !important;
   }
 
   .bubble.child.module-child .icon {
@@ -2586,6 +2685,16 @@ html.perf-lite .connector-node {
     max-width: 3.9rem;
     font-size: 0.43rem;
     line-height: 1;
+  }
+
+  .viewport-phone.viewport-portrait .bubble.child.module-child .label {
+    max-width: 3.2rem;
+    font-size: 0.36rem;
+  }
+
+  .viewport-phone.viewport-portrait .bubble.child.module-child .node-meta {
+    max-width: 3.4rem;
+    font-size: 0.28rem;
   }
 
   .bubble.child.module-child .node-meta {
@@ -2655,9 +2764,10 @@ html.perf-lite .connector-node {
   .viewport-phone.viewport-portrait .topbar h1,
   body.panel-open.viewport-phone.viewport-portrait .topbar h1,
   body.panel-collapsed.viewport-phone.viewport-portrait .topbar h1 {
-    max-width: 11.6rem;
-    font-size: clamp(0.95rem, 7.2vw, 1.35rem);
-    line-height: 1.02;
+    max-width: 11rem;
+    font-size: clamp(1.1rem, 7vw, 1.72rem);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
     white-space: normal;
   }
 
@@ -2666,6 +2776,12 @@ html.perf-lite .connector-node {
     padding: 0.9rem 1rem 0.45rem;
   }
   .viewport-phone.viewport-portrait .scene-caption { top: 5.2rem; }
+
+  .viewport-phone.viewport-portrait .kicker {
+    max-width: 12rem;
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+  }
 
   body.panel-collapsed .kicker {
     max-width: 12.8rem;
@@ -2869,6 +2985,285 @@ html.perf-lite .connector-node {
 
   .simulation-run {
     flex: 1 1 9rem;
+  }
+}
+
+/* Landscape phones report a tablet-like width, so they need their own
+   compact composition instead of inheriting the portrait bottom sheet. */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 520px) {
+  :root {
+    --landscape-panel-width: min(42vw, 27rem);
+  }
+
+  html,
+  body {
+    overflow: hidden;
+  }
+
+  .universe,
+  .scene-shell,
+  .bubble-scene {
+    min-height: var(--viewport-height, 100svh);
+    height: var(--viewport-height, 100svh);
+  }
+
+  .topbar {
+    position: relative;
+    z-index: 20;
+    gap: 0.65rem;
+    padding: 0.62rem 1rem 0.3rem;
+    background: linear-gradient(180deg, rgba(5, 6, 7, 0.86), transparent);
+  }
+
+  .kicker {
+    max-width: 27rem;
+    margin-bottom: 0.12rem;
+    font-size: 0.56rem;
+    line-height: 1.1;
+    letter-spacing: 0.19em;
+  }
+
+  .topbar h1 {
+    max-width: 22rem;
+    font-size: clamp(1.2rem, 3.1vw, 1.6rem);
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  .contact-link {
+    min-height: 2.05rem;
+    padding: 0 0.78rem;
+    font-size: 0.76rem;
+  }
+
+  .scene-caption {
+    top: 4.35rem;
+    left: 1rem;
+    gap: 0.14rem;
+    font-size: 0.48rem;
+  }
+
+  .status-panel,
+  .hint {
+    display: none;
+  }
+
+  .scene-shell::before {
+    top: 5.5rem;
+    bottom: 1rem;
+  }
+
+  .scene-shell::after {
+    left: 1rem;
+    right: 1rem;
+  }
+
+  .bubble-scene,
+  .data-lines {
+    width: var(--viewport-width, 100vw);
+    transition: width 220ms ease;
+  }
+
+  body.panel-open:not(.panel-collapsed) .bubble-scene,
+  body.panel-open:not(.panel-collapsed) .data-lines {
+    width: calc(var(--viewport-width, 100vw) - var(--landscape-panel-width) - 0.7rem);
+  }
+
+  body.panel-open .bubble-scene,
+  body.panel-open .data-lines,
+  body.panel-collapsed .bubble-scene,
+  body.panel-collapsed .data-lines {
+    height: var(--viewport-height, 100svh);
+  }
+
+  body.panel-open .bubble,
+  body.panel-open .module-frame,
+  body.panel-open .tech-frame {
+    opacity: 0.38;
+  }
+
+  body.panel-open .bubble.is-active,
+  body.panel-open .module-parent {
+    opacity: 0.62;
+  }
+
+  .bubble.center {
+    width: var(--core-size);
+    height: var(--core-size);
+  }
+
+  .bubble.primary,
+  .bubble.child {
+    width: var(--node-size);
+    height: var(--node-size);
+  }
+
+  .bubble-content {
+    gap: 0.1rem;
+    max-width: calc(var(--bubble-size) - 0.45rem);
+    padding: 0.22rem;
+  }
+
+  .bubble .icon,
+  .bubble.primary .icon,
+  .bubble.child .icon {
+    width: clamp(1.35rem, 4.5vh, 1.8rem);
+    min-width: clamp(1.35rem, 4.5vh, 1.8rem);
+    height: clamp(1.35rem, 4.5vh, 1.8rem);
+    border-width: 1px;
+    font-size: 0.62rem;
+  }
+
+  .bubble .label,
+  .bubble.child .label {
+    max-width: calc(var(--bubble-size) * 0.76);
+    font-size: clamp(0.48rem, 1.65vh, 0.65rem);
+    line-height: 1;
+  }
+
+  .bubble .micro,
+  .bubble .node-meta,
+  .bubble .level-tag,
+  .bubble.center .center-tagline,
+  .bubble.center .center-title,
+  .bubble.center .center-subtitle,
+  .bubble.center .stat-row {
+    display: none;
+  }
+
+  .center-name {
+    max-width: calc(var(--bubble-size) * 0.76);
+    font-size: clamp(0.7rem, 2.7vh, 1rem);
+    line-height: 0.98;
+  }
+
+  .bubble.center .icon {
+    width: clamp(1.55rem, 5vh, 2rem);
+    min-width: clamp(1.55rem, 5vh, 2rem);
+    height: clamp(1.55rem, 5vh, 2rem);
+  }
+
+  .tech-frame {
+    width: min(70vw, 24rem);
+    opacity: 0.42;
+  }
+
+  .module-frame {
+    top: 58%;
+    width: min(48vw, 24rem);
+    height: min(66vh, 15rem);
+  }
+
+  .module-parent {
+    top: 58%;
+    width: 4.25rem !important;
+    height: 4.25rem !important;
+  }
+
+  .bubble.child.module-child {
+    width: var(--module-child-size, 4rem) !important;
+    height: var(--module-child-size, 4rem) !important;
+  }
+
+  .bubble.child.module-child .bubble-content {
+    gap: 0.08rem;
+    padding: 0.22rem;
+  }
+
+  .bubble.child.module-child .label {
+    max-width: 3.2rem;
+    font-size: 0.36rem;
+  }
+
+  .detail-panel {
+    left: auto;
+    right: 0.45rem;
+    top: 0.45rem;
+    bottom: 0.45rem;
+    width: var(--landscape-panel-width);
+    height: auto;
+    max-height: none;
+    overflow-y: auto;
+    border-radius: 0.58rem;
+    padding: 0.82rem 0.72rem 0.72rem;
+    transform: none;
+    box-shadow: -16px 0 48px rgba(0, 0, 0, 0.58), inset 0 0 26px rgba(53, 242, 167, 0.03);
+  }
+
+  .detail-panel::after {
+    display: none;
+  }
+
+  .detail-toggle,
+  .detail-close {
+    top: 0.5rem;
+  }
+
+  .detail-toggle {
+    right: 3rem;
+  }
+
+  .detail-close {
+    right: 0.5rem;
+  }
+
+  .detail-panel.is-collapsed {
+    left: auto;
+    right: 0.65rem;
+    top: auto;
+    bottom: 0.65rem;
+    width: 4rem;
+    height: 3.05rem;
+    max-height: 3.05rem;
+    padding: 0.5rem;
+  }
+
+  .detail-eyebrow {
+    margin-bottom: 0.3rem;
+    font-size: 0.58rem;
+  }
+
+  .detail-title {
+    margin-bottom: 0.55rem;
+    font-size: clamp(1rem, 3.2vh, 1.35rem);
+  }
+
+  .detail-copy,
+  .detail-list li,
+  .detail-value {
+    font-size: clamp(0.68rem, 1.75vh, 0.82rem);
+    line-height: 1.35;
+  }
+
+  .detail-value {
+    overflow-wrap: anywhere;
+  }
+
+  .detail-section {
+    margin-top: 0.62rem;
+    padding-top: 0.55rem;
+  }
+
+  .detail-grid,
+  .credential-meta {
+    grid-template-columns: 1fr;
+    gap: 0.42rem;
+    margin-top: 0.65rem;
+  }
+
+  .detail-item {
+    padding: 0.42rem 0.5rem;
+  }
+
+  .detail-item > span:last-child {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .certificate-evidence img {
+    max-height: 11rem;
   }
 }
 

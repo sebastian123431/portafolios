@@ -36,27 +36,72 @@
     }
   );
 
+  function protectImageNodes(root = document) {
+    root.querySelectorAll("img, [data-image-preview], .image-preview-trigger").forEach((node) => {
+      if (node.tagName === "IMG") {
+        node.setAttribute("draggable", "false");
+        node.setAttribute("oncontextmenu", "return false;");
+      }
+      node.setAttribute("draggable", "false");
+      node.oncontextmenu = (event) => event.preventDefault();
+    });
+  }
+
   function installSensitiveProtection() {
+    const protectedSelector = "[data-sensitive], img, [data-image-preview], .image-preview-trigger, .image-dialog-img";
+    const shouldProtectTarget = (target) => {
+      if (!target || !(target instanceof Element)) return false;
+      return Boolean(target.closest(protectedSelector));
+    };
+
+    const blockImmediate = (event) => {
+      if (!shouldProtectTarget(event.target)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    };
+
+    const markProtectedNode = (node) => {
+      if (!node || !(node instanceof Element) || node.dataset.imageGuard === "true") return;
+      node.dataset.imageGuard = "true";
+      node.setAttribute("draggable", "false");
+      node.setAttribute("oncontextmenu", "return false;");
+      node.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      }, { capture: true });
+      node.addEventListener("dragstart", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      }, { capture: true });
+      node.addEventListener("copy", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      }, { capture: true });
+    };
+
     document.addEventListener("keydown", (event) => {
-      const copyKeys = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c";
-      const inspectKeys = (event.ctrlKey || event.shiftKey) && event.key.toLowerCase() === "i";
-      const screenshotKey = event.key === "PrintScreen";
-      if (copyKeys || inspectKeys || screenshotKey) {
+      const shortcutKey = event.key.toLowerCase();
+      const copyKeys = (event.ctrlKey || event.metaKey) && (shortcutKey === "c" || shortcutKey === "s" || shortcutKey === "p");
+      const inspectKeys = (event.ctrlKey || event.shiftKey) && shortcutKey === "i";
+      const screenshotKey = shortcutKey === "printscreen" || event.key === "PrintScreen";
+      if (copyKeys || inspectKeys || screenshotKey || shouldProtectTarget(event.target)) {
         event.preventDefault();
       }
-    });
+    }, { capture: true });
 
-    document.addEventListener("contextmenu", (event) => {
-      if (event.target && event.target.closest("[data-sensitive]")) {
-        event.preventDefault();
-      }
-    });
+    document.addEventListener("copy", blockImmediate, { capture: true });
+    document.addEventListener("contextmenu", blockImmediate, { capture: true });
+    document.addEventListener("dragstart", blockImmediate, { capture: true });
+    window.addEventListener("contextmenu", blockImmediate, { capture: true });
+    window.addEventListener("dragstart", blockImmediate, { capture: true });
 
-    document.addEventListener("dragstart", (event) => {
-      if (event.target && event.target.closest("[data-sensitive]")) {
-        event.preventDefault();
-      }
+    document.querySelectorAll("img, [data-image-preview], .image-preview-trigger, .image-dialog-img, [data-sensitive]").forEach(markProtectedNode);
+
+    const observer = new MutationObserver(() => {
+      document.querySelectorAll("img, [data-image-preview], .image-preview-trigger, .image-dialog-img, [data-sensitive]").forEach(markProtectedNode);
     });
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 
   installSensitiveProtection();
@@ -68,6 +113,7 @@
   let currentLevel = "home";
   let activeId = "profile";
   let resizeTimer = null;
+  const panelOpen = document.body.classList.contains("panel-open") && !document.body.classList.contains("panel-collapsed");
 
   const centerData = bubbles.find((bubble) => bubble.type === "center") || bubbles[0];
   const mainBubbles = bubbles.filter((bubble) => bubble.id !== centerData.id);
@@ -95,33 +141,35 @@
     const compact = width < 900;
     const phone = width < 600;
     const landscape = width > height;
+    const shortLandscape = compact && landscape && height < 520;
     const denseChildren = childCount > 6;
+    const portraitPhone = phone && !landscape;
     const root = document.documentElement;
     const limit = (value, min, max) => Math.max(min, Math.min(max, value));
-    const topReserve = compact ? (landscape ? 86 : 142) : 164;
+    const topReserve = compact ? (shortLandscape ? 78 : landscape ? 86 : portraitPhone ? 180 : 142) : 164;
     const usableHeight = Math.max(280, height - topReserve);
     const usableWidth = Math.max(280, width - (compact ? 20 : 44));
-    const landscapePhone = phone && landscape;
+    const landscapePhone = shortLandscape;
 
     const coreSize = compact
-      ? limit(Math.min(width * (landscapePhone ? 0.22 : 0.31), usableHeight * 0.23), landscapePhone ? 90 : 108, landscapePhone ? 132 : 148)
-      : limit(Math.min(usableWidth * 0.17, usableHeight * 0.31), 188, 246);
+      ? limit(Math.min(width * (landscapePhone ? 0.22 : portraitPhone ? 0.24 : 0.28), usableHeight * (portraitPhone ? 0.18 : 0.23)), landscapePhone ? 90 : 92, landscapePhone ? 132 : 118)
+      : limit(Math.min(usableWidth * 0.15, usableHeight * 0.28), 170, 224);
     const nodeSize = compact
-      ? limit(Math.min(width * (landscapePhone ? 0.13 : 0.2), usableHeight * 0.14), landscapePhone ? 58 : 70, landscapePhone ? 88 : 98)
-      : limit(Math.min(usableWidth * 0.13, usableHeight * 0.19), 118, 172);
+      ? limit(Math.min(width * (landscapePhone ? 0.13 : portraitPhone ? 0.16 : 0.18), usableHeight * (portraitPhone ? 0.12 : 0.14)), landscapePhone ? 58 : 62, landscapePhone ? 88 : 82)
+      : limit(Math.min(usableWidth * 0.12, usableHeight * 0.17), 106, 156);
     const childSize = denseChildren
       ? (compact
-        ? limit(Math.min(width * (landscapePhone ? 0.12 : 0.2), usableHeight * 0.13), landscapePhone ? 56 : 66, landscapePhone ? 84 : 96)
-        : limit(Math.min(width * 0.12, usableHeight * 0.21), 118, 176))
+        ? limit(Math.min(width * (landscapePhone ? 0.12 : portraitPhone ? 0.15 : 0.18), usableHeight * (portraitPhone ? 0.1 : 0.13)), landscapePhone ? 56 : 60, landscapePhone ? 84 : 80)
+        : limit(Math.min(width * 0.11, usableHeight * 0.18), 104, 158))
       : (compact
-        ? limit(Math.min(width * (landscapePhone ? 0.13 : 0.23), usableHeight * 0.16), landscapePhone ? 58 : 74, landscapePhone ? 92 : 112)
-        : limit(Math.min(usableWidth * 0.2, usableHeight * 0.34), 152, 238));
+        ? limit(Math.min(width * (landscapePhone ? 0.13 : portraitPhone ? 0.17 : 0.2), usableHeight * (portraitPhone ? 0.11 : 0.16)), landscapePhone ? 58 : 62, landscapePhone ? 92 : 82)
+        : limit(Math.min(usableWidth * 0.17, usableHeight * 0.28), 136, 206));
     const moduleChildSize = childCount > 12
       ? (compact
-        ? limit(Math.min(width * (landscapePhone ? 0.13 : 0.17), usableHeight * 0.09), 50, landscapePhone ? 70 : 78)
+        ? limit(Math.min(width * (landscapePhone ? 0.13 : portraitPhone ? 0.14 : 0.17), usableHeight * (portraitPhone ? 0.08 : 0.09)), 50, landscapePhone ? 70 : 72)
         : limit(Math.min(usableWidth * 0.11, usableHeight * 0.14), 78, 118))
       : (compact
-        ? limit(childSize * 0.82, landscapePhone ? 48 : 58, landscapePhone ? 76 : 90)
+        ? limit(childSize * (portraitPhone ? 0.72 : 0.82), landscapePhone ? 48 : 54, landscapePhone ? 76 : 72)
         : limit(childSize * 0.78, 118, 176));
 
     root.style.setProperty("--core-size", `${coreSize}px`);
@@ -142,6 +190,8 @@
     root.classList.toggle("viewport-compact", compact);
     root.classList.toggle("viewport-phone", phone);
     root.classList.toggle("viewport-portrait", portrait);
+    root.classList.toggle("viewport-landscape", width > height);
+    root.classList.toggle("viewport-short-landscape", compact && width > height && height < 520);
 
     fitNodeScale(currentLevel === "children" ? (bubbles.find((bubble) => bubble.id === activeId)?.children || []).length : 0, { width, height });
     drawTechField();
@@ -217,6 +267,31 @@
     resizeTimer = window.setTimeout(() => adaptViewport(), 180);
   }
 
+  function syncClusterFrameCenter() {
+    const frame = scene.querySelector(".module-frame");
+    const tech = scene.querySelector(".tech-frame");
+    const trackTarget = currentLevel === "children"
+      ? scene.querySelector(".module-parent") || scene.querySelector(".bubble.center")
+      : scene.querySelector(".bubble.center");
+
+    if (!trackTarget || !frame && !tech) return;
+
+    const rect = scene.getBoundingClientRect();
+    const targetRect = trackTarget.getBoundingClientRect();
+    const x = targetRect.left + targetRect.width / 2 - rect.left;
+    const y = targetRect.top + targetRect.height / 2 - rect.top;
+
+    if (frame) {
+      frame.style.left = `${x}px`;
+      frame.style.top = `${y}px`;
+    }
+
+    if (tech) {
+      tech.style.left = `${x}px`;
+      tech.style.top = `${y}px`;
+    }
+  }
+
   function relayoutCurrentScene() {
     fitNodeScale(currentLevel === "children" ? (bubbles.find((bubble) => bubble.id === activeId)?.children || []).length : 0);
     drawTechField();
@@ -231,25 +306,37 @@
       const rect = scene.getBoundingClientRect();
       const viewport = readViewport();
       const phonePanel = viewport.width < 600 && document.body.classList.contains("panel-open") && !document.body.classList.contains("panel-collapsed");
-      const parentY = phonePanel
+      const shortLandscape = viewport.width < 900 && viewport.width > viewport.height && viewport.height < 520;
+      const panelOpen = document.body.classList.contains("panel-open") && !document.body.classList.contains("panel-collapsed");
+      const parentY = shortLandscape
+        ? rect.height * (panelOpen ? 0.54 : 0.58)
+        : phonePanel
         ? Math.max(270, Math.min(rect.height - 68, rect.height * 0.68))
         : rect.height / 2 + 8;
       if (parentBubble) setPosition(parentBubble, rect.width / 2, parentY);
       graphLayout(active.children || [], "children").forEach(({ x, y }, index) => {
         if (childElements[index]) setPosition(childElements[index], x, y);
       });
-      requestAnimationFrame(() => drawConnectors(parentBubble, childElements));
+      requestAnimationFrame(() => {
+        syncClusterFrameCenter();
+        drawConnectors(parentBubble, childElements);
+      });
       return;
     }
 
     const center = scene.querySelector(".bubble.center");
     const primaryNodes = Array.from(scene.querySelectorAll(".bubble.primary:not(.module-parent)"));
     const rect = scene.getBoundingClientRect();
-    if (center) setPosition(center, rect.width / 2, rect.height / 2 + 8);
+    const viewport = readViewport();
+    const shortLandscape = viewport.width < 900 && viewport.width > viewport.height && viewport.height < 520;
+    if (center) setPosition(center, rect.width / 2, shortLandscape ? rect.height * 0.58 : rect.height / 2 + 8);
     graphLayout(mainBubbles, "home").forEach(({ x, y }, index) => {
       if (primaryNodes[index]) setPosition(primaryNodes[index], x, y);
     });
-    requestAnimationFrame(() => drawConnectors(center, primaryNodes));
+    requestAnimationFrame(() => {
+      syncClusterFrameCenter();
+      drawConnectors(center, primaryNodes);
+    });
   }
 
   function measureBubble(mode) {
@@ -381,57 +468,53 @@
     const viewport = readViewport();
     const compact = viewport.width < 900;
     const phone = viewport.width < 600;
-    const panelOpen = document.body.classList.contains("panel-open") && !document.body.classList.contains("panel-collapsed");
+    const landscape = viewport.width > viewport.height;
+    const shortLandscape = compact && landscape && viewport.height < 520;
+    const phonePanel = viewport.width < 600 && panelOpen && phone;
     const nodeSize = measureBubble(mode === "children" ? "child module-child" : "primary");
     const margin = nodeSize / 2 + (compact ? 8 : 22);
-    const desktopHome = [
-      [0.3, 0.3], [0.5, 0.14], [0.7, 0.3],
-      [0.27, 0.56], [0.73, 0.56], [0.38, 0.77], [0.62, 0.77],
-    ];
-    const mobileHome = panelOpen && phone
-      ? [
-        [0.28, 0.22], [0.72, 0.22], [0.23, 0.4],
-        [0.77, 0.4], [0.31, 0.58], [0.69, 0.58], [0.5, 0.72],
-      ]
-      : [
-        [0.27, 0.26], [0.73, 0.26], [0.23, 0.48],
-        [0.77, 0.48], [0.31, 0.69], [0.69, 0.69], [0.5, 0.84],
-      ];
-    const desktopChildren = [
-      [0.34, 0.28], [0.66, 0.28], [0.31, 0.5],
-      [0.69, 0.5], [0.4, 0.72], [0.6, 0.72],
-    ];
-    const mobileChildren = panelOpen && phone
-      ? [
-        [0.5, 0.12], [0.25, 0.34], [0.75, 0.34],
-        [0.32, 0.58], [0.68, 0.58], [0.5, 0.78],
-      ]
-      : [
-        [0.31, 0.25], [0.69, 0.25], [0.28, 0.44],
-        [0.72, 0.44], [0.35, 0.62], [0.65, 0.62],
-      ];
-    const orbitPoints = (count) => Array.from({ length: count }, (_, index) => {
+    const centerX = rect.width / 2;
+    const centerY = mode === "children"
+      ? (shortLandscape ? rect.height * (panelOpen ? 0.54 : 0.58) : phone && !landscape ? rect.height * (panelOpen ? 0.46 : 0.52) : rect.height * 0.5 + 6)
+      : (shortLandscape ? rect.height * 0.58 : rect.height * 0.5 + 6);
+    const orderedItems = Array.from(items);
+    const orbitPoints = (count, radiusX, radiusY) => Array.from({ length: count }, (_, index) => {
       const angle = -Math.PI / 2 + (Math.PI * 2 * index) / count;
-      const radiusX = compact ? (phone && panelOpen ? 0.24 : 0.28) : 0.32;
-      const radiusY = compact ? (phone && panelOpen ? 0.22 : 0.28) : 0.34;
-      const centerY = phone && panelOpen ? 0.34 : 0.48;
-      return [0.5 + Math.cos(angle) * radiusX, centerY + Math.sin(angle) * radiusY];
+      return {
+        x: centerX + Math.cos(angle) * radiusX,
+        y: centerY + Math.sin(angle) * radiusY,
+      };
     });
-    const points = mode === "children"
-      ? (items.length > 6 ? orbitPoints(items.length) : (compact ? mobileChildren : desktopChildren))
-      : (compact ? mobileHome : desktopHome);
 
-    const nodes = items.map((item, index) => {
+    const portraitPhone = phone && !landscape;
+    const landscapeHome = [
+      [0.18, 0.54], [0.34, 0.28], [0.66, 0.28], [0.82, 0.54], [0.66, 0.82], [0.34, 0.82],
+    ];
+    const landscapeChildren = [
+      [0.17, 0.52], [0.36, 0.28], [0.64, 0.28], [0.83, 0.52], [0.64, 0.82], [0.36, 0.82],
+    ];
+    const points = mode === "children"
+      ? (shortLandscape
+        ? items.map((_, index) => ({ x: rect.width * landscapeChildren[index % landscapeChildren.length][0], y: rect.height * landscapeChildren[index % landscapeChildren.length][1] }))
+        : compact
+        ? orbitPoints(items.length, portraitPhone ? 130 : (phonePanel ? 150 : 180), portraitPhone ? 95 : 105)
+        : orbitPoints(items.length, 210, 120))
+      : (shortLandscape
+        ? items.map((_, index) => ({ x: rect.width * landscapeHome[index % landscapeHome.length][0], y: rect.height * landscapeHome[index % landscapeHome.length][1] }))
+        : compact
+        ? orbitPoints(items.length, portraitPhone ? 135 : (phonePanel ? 140 : 160), portraitPhone ? 105 : 120)
+        : orbitPoints(items.length, 250, 166));
+
+    const nodes = orderedItems.map((item, index) => {
       const point = points[index % points.length];
       const topSafe = compact
-        ? (phone ? (panelOpen ? (mode === "children" ? 150 : 152) : 176) : 132)
+        ? (shortLandscape ? 92 : phone ? (portraitPhone ? (mode === "children" ? 170 : 190) : (panelOpen ? (mode === "children" ? 150 : 152) : 176)) : 132)
         : margin;
       const bottomSafe = compact
-        ? (phone && panelOpen ? (mode === "children" ? 34 : 16) : 34)
+        ? (shortLandscape ? 28 : phone ? (portraitPhone ? (mode === "children" ? 110 : 100) : (panelOpen ? (mode === "children" ? 34 : 16) : 34)) : 34)
         : margin;
-      const layoutHeight = Math.max(160, rect.height - topSafe - bottomSafe);
-      const x = Math.max(margin, Math.min(rect.width - margin, rect.width * point[0]));
-      const y = Math.max(topSafe, Math.min(rect.height - bottomSafe, topSafe + layoutHeight * point[1]));
+      const x = Math.max(margin, Math.min(rect.width - margin, point.x));
+      const y = Math.max(topSafe, Math.min(rect.height - bottomSafe, point.y));
       return { item, x, y, topSafe, bottomSafe };
     });
 
@@ -442,6 +525,7 @@
       mode,
       compact,
       phone,
+      shortLandscape,
       panelOpen,
     });
   }
@@ -449,10 +533,10 @@
   function solidifyLayout(nodes, options) {
     if (!nodes.length) return nodes;
 
-    const { rect, nodeSize, margin, mode, compact, phone, panelOpen } = options;
+    const { rect, nodeSize, margin, mode, compact, phone, shortLandscape, panelOpen } = options;
     const topSafe = nodes[0].topSafe || margin;
     const bottomSafe = nodes[0].bottomSafe || margin;
-    const minDistance = nodeSize * (phone ? 1.16 : compact ? 1.1 : 1.04);
+    const minDistance = nodeSize * (shortLandscape ? 1.2 : phone ? 1.16 : compact ? 1.1 : 1.04);
     const bounds = {
       left: margin,
       right: Math.max(margin, rect.width - margin),
@@ -462,7 +546,7 @@
     const parentObstacle = mode === "children"
       ? {
         x: rect.width / 2,
-        y: phone && panelOpen ? Math.max(270, Math.min(rect.height - 68, rect.height * 0.68)) : rect.height / 2 + 8,
+        y: shortLandscape ? rect.height * (panelOpen ? 0.54 : 0.58) : phone && panelOpen ? Math.max(270, Math.min(rect.height - 68, rect.height * 0.68)) : rect.height / 2 + 8,
         radius: nodeSize * (phone ? 0.92 : 0.82),
       }
       : null;
@@ -613,23 +697,101 @@
       <div class="bubble-content">
         ${iconHTML(data, "")}
         <span class="label">${escapeHTML(data.label)}</span>
+        ${data.text ? `<span class="micro">${escapeHTML(data.text)}</span>` : ""}
         ${(data.level || data.badge) ? `<span class="level-tag">${escapeHTML(data.level || data.badge)}</span>` : ""}
         <span class="node-meta">${escapeHTML(data.kind === "skill" ? `TECH // ${data.icon || "NODE"}` : data.kind === "certificate" ? `CERT // ${data.icon || "NODE"}` : (data.id || data.kind || "node")).toUpperCase()}</span>
-        ${data.text ? `<span class="micro">${escapeHTML(data.text)}</span>` : ""}
       </div>
     `;
   }
 
   function createBubble(data, variant) {
     const element = document.createElement("button");
+    const resolvedSize = variant === "center"
+      ? "var(--core-size)"
+      : variant.includes("child")
+        ? "var(--child-size)"
+        : "var(--node-size)";
     element.type = "button";
     element.className = `bubble ${variant}`;
     element.dataset.id = data.id || data.label;
     element.setAttribute("aria-label", data.label || data.name || "Nodo");
     element.style.setProperty("--bubble-color", data.color || centerData.color || "#35f2a7");
+    element.style.setProperty("--bubble-size", resolvedSize);
     element.innerHTML = bubbleHTML(data, variant);
+    applyDynamicBubbleSizing(element, data, variant);
     element.addEventListener("click", () => handleBubble(data, variant));
     return element;
+  }
+
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function applyDynamicBubbleSizing(element, data, variant) {
+    const bubbleSize = (() => {
+      const styles = getComputedStyle(document.documentElement);
+      const value = variant === "center"
+        ? styles.getPropertyValue("--core-size")
+        : variant.includes("child")
+          ? styles.getPropertyValue("--child-size")
+          : styles.getPropertyValue("--node-size");
+      const parsed = Number.parseFloat(value || "120");
+      return Number.isFinite(parsed) ? parsed : 120;
+    })();
+
+    const labelText = String(data.label || data.name || "").trim();
+    const microText = String(data.text || data.tagline || data.title || "").trim();
+
+    const labelValue = labelText.length || 1;
+    const microValue = microText.length || 1;
+    const labelScale = clamp(16 / labelValue, 0.78, 1.08);
+    const microScale = clamp(22 / microValue, 0.7, 1.02);
+    const iconScale = clamp(24 / Math.max(labelValue, microValue), 0.72, 1.12);
+
+    const labelNode = element.querySelector(".label");
+    const microNode = element.querySelector(".micro");
+    const centerNameNode = element.querySelector(".center-name");
+    const centerTaglineNode = element.querySelector(".center-tagline");
+    const centerTitleNode = element.querySelector(".center-title");
+    const iconNode = element.querySelector(".icon");
+
+    if (labelNode) {
+      const size = clamp(bubbleSize * 0.14 * labelScale, 11, 18);
+      labelNode.style.fontSize = `${size}px`;
+      labelNode.style.maxWidth = `${clamp(bubbleSize * 0.68, 72, 180)}px`;
+    }
+
+    if (microNode) {
+      const size = clamp(bubbleSize * 0.09 * microScale, 8, 15);
+      microNode.style.fontSize = `${size}px`;
+      microNode.style.maxWidth = `${clamp(bubbleSize * 0.62, 66, 150)}px`;
+    }
+
+    if (centerNameNode) {
+      const size = clamp(bubbleSize * 0.16 * clamp(18 / Math.max(labelValue, 4), 0.7, 1), 18, 34);
+      centerNameNode.style.fontSize = `${size}px`;
+      centerNameNode.style.maxWidth = `${clamp(bubbleSize * 0.76, 110, 210)}px`;
+    }
+
+    if (centerTaglineNode) {
+      const size = clamp(bubbleSize * 0.1 * clamp(20 / Math.max(microValue, 4), 0.7, 1), 10, 20);
+      centerTaglineNode.style.fontSize = `${size}px`;
+      centerTaglineNode.style.maxWidth = `${clamp(bubbleSize * 0.72, 100, 180)}px`;
+    }
+
+    if (centerTitleNode) {
+      const size = clamp(bubbleSize * 0.08 * clamp(24 / Math.max(microValue, 5), 0.7, 1), 9, 18);
+      centerTitleNode.style.fontSize = `${size}px`;
+      centerTitleNode.style.maxWidth = `${clamp(bubbleSize * 0.72, 100, 180)}px`;
+    }
+
+    if (iconNode) {
+      const size = clamp(bubbleSize * 0.19 * iconScale, 24, 50);
+      iconNode.style.width = `${size}px`;
+      iconNode.style.height = `${size}px`;
+      iconNode.style.minWidth = `${size}px`;
+      iconNode.style.fontSize = `${clamp(size * 0.42, 12, 24)}px`;
+    }
   }
 
   function setPosition(element, x, y) {
@@ -855,8 +1017,8 @@
         <div class="case-gallery">
           ${data.gallery.map((image) => `
             <figure>
-              <button class="image-preview-trigger" type="button" data-image-preview data-image-src="${escapeHTML(image.src)}" data-image-alt="${escapeHTML(image.alt || "Evidencia visual")}" data-image-caption="${escapeHTML(image.caption || "")}" aria-label="Ver imagen en grande">
-                <img src="${escapeHTML(image.src)}" alt="${escapeHTML(image.alt || "Evidencia visual")}" loading="lazy" decoding="async" onerror="this.closest('figure').hidden=true">
+              <button class="image-preview-trigger" type="button" data-image-preview data-image-src="${escapeHTML(image.src)}" data-image-alt="${escapeHTML(image.alt || "Evidencia visual")}" data-image-caption="${escapeHTML(image.caption || "")}" aria-label="Ver imagen en grande" draggable="false">
+                <img src="${escapeHTML(image.src)}" alt="${escapeHTML(image.alt || "Evidencia visual")}" loading="lazy" decoding="async" draggable="false" oncontextmenu="return false;" onerror="this.closest('figure').hidden=true">
               </button>
               ${image.caption ? `<figcaption>${escapeHTML(image.caption)}</figcaption>` : ""}
             </figure>
@@ -873,12 +1035,15 @@
     return `
       <section class="certificate-evidence" aria-label="Evidencia visual">
         <div class="detail-section-heading"><i class="bi bi-file-earmark-image" aria-hidden="true"></i> EVIDENCIA</div>
-        <figure>
-          <button class="image-preview-trigger" type="button" data-image-preview data-image-src="${escapeHTML(evidence.src)}" data-image-alt="${escapeHTML(evidence.alt || data.label || "Certificado")}" data-image-caption="${escapeHTML(evidence.caption || "")}" aria-label="Ver certificado en grande">
-            <img src="${escapeHTML(evidence.src)}" alt="${escapeHTML(evidence.alt || data.label || "Certificado")}" loading="lazy" decoding="async" onerror="this.closest('.certificate-evidence').hidden=true">
+        <div class="certificate-gate" data-cert-gate>
+          <div class="certificate-gate-copy">
+            <strong>Verificación de credencial</strong>
+            <span>Se requiere confirmación del visitante para revelar la evidencia.</span>
+          </div>
+          <button class="certificate-reveal" type="button" data-cert-reveal data-image-src="${escapeHTML(evidence.src)}" data-image-alt="${escapeHTML(evidence.alt || data.label || "Certificado")}" data-image-caption="${escapeHTML(evidence.caption || "")}" aria-label="Revelar certificado">
+            Revelar evidencia
           </button>
-          ${evidence.caption ? `<figcaption>${escapeHTML(evidence.caption)}</figcaption>` : ""}
-        </figure>
+        </div>
       </section>
     `;
   }
@@ -1014,8 +1179,10 @@
         </section>
       `
       : "";
+    const isLinkedInNode = data.secret_kind === "linkedin" || data.label === "LinkedIn" || data.id === "linkedin";
+    const shouldShowDirectLink = Boolean(data.href && data.href !== "#" && isLinkedInNode);
     const relatedProject = data.related_project || null;
-    const projectCardHTML = relatedProject || data.href
+    const projectCardHTML = relatedProject || shouldShowDirectLink
       ? `
         <div class="project-card" aria-label="${escapeHTML(relatedProject ? (relatedProject.label || "Proyecto relacionado") : "Proyecto relacionado")}">
           <div class="project-card-header">
@@ -1025,11 +1192,11 @@
           <h3 class="project-card-title">${escapeHTML(relatedProject ? (relatedProject.label || "Proyecto") : (data.label || "Proyecto"))}</h3>
           <p class="project-card-copy">${escapeHTML(relatedProject ? (relatedProject.text || relatedProject.content || "Abre el proyecto para revisar el caso completo.") : (data.text || data.content || "Abre el enlace para revisar el proyecto completo."))}</p>
           ${relatedProject ? `<button class="project-cta" type="button" data-related-project>Ver proyecto <span aria-hidden="true">↗</span></button>` : ""}
-          ${data.href ? `<a class="detail-action" href="${escapeHTML(data.href)}" target="_blank" rel="noopener">Abrir enlace <span aria-hidden="true">&#8599;</span></a>` : ""}
+          ${shouldShowDirectLink ? `<a class="detail-action" href="${escapeHTML(data.href)}" target="_blank" rel="noopener">Abrir enlace <span aria-hidden="true">&#8599;</span></a>` : ""}
         </div>
       `
       : "";
-    const actionHTML = data.href && !relatedProject
+    const actionHTML = shouldShowDirectLink && !relatedProject && !projectCardHTML
       ? `<a class="detail-action" href="${escapeHTML(data.href)}" target="_blank" rel="noopener">Abrir enlace <span aria-hidden="true">&#8599;</span></a>`
       : "";
     const routeHTML = data.route
@@ -1196,6 +1363,31 @@
         alt: previewButton.dataset.imageAlt,
         caption: previewButton.dataset.imageCaption,
       }));
+    });
+
+    content.querySelectorAll("[data-cert-reveal]").forEach((revealButton) => {
+      revealButton.addEventListener("click", () => {
+        const gate = revealButton.closest("[data-cert-gate]");
+        if (!gate) return;
+        const source = revealButton.dataset.imageSrc;
+        if (!source) return;
+        gate.innerHTML = `
+          <button class="image-preview-trigger" type="button" data-image-preview data-image-src="${escapeHTML(source)}" data-image-alt="${escapeHTML(revealButton.dataset.imageAlt || "Certificado")}" data-image-caption="${escapeHTML(revealButton.dataset.imageCaption || "")}" aria-label="Ver certificado en grande" draggable="false">
+            <img src="${escapeHTML(source)}" alt="${escapeHTML(revealButton.dataset.imageAlt || "Certificado")}" loading="lazy" decoding="async" draggable="false" oncontextmenu="return false;" onerror="this.closest('.certificate-gate').hidden=true">
+          </button>
+        `;
+
+        setTimeout(() => {
+          const preview = gate.querySelector("[data-image-preview]");
+          if (preview) {
+            preview.addEventListener("click", () => openImageModal({
+              src: preview.dataset.imageSrc,
+              alt: preview.dataset.imageAlt,
+              caption: preview.dataset.imageCaption,
+            }));
+          }
+        }, 0);
+      });
     });
 
     panel.style.display = "block";
