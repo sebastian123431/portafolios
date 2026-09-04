@@ -253,7 +253,7 @@ def index(request):
         {
             "id": "profile",
             "label": "Perfil",
-            "color": "#8b5cf6",
+            "color": "#7cff2f",
             "icon": "bi-person-badge",
             "type": "center",
             "content": context["summary"],
@@ -289,7 +289,7 @@ def index(request):
         {
             "id": "projects",
             "label": "Proyectos",
-            "color": "#18d8ff",
+            "color": "#39ff14",
             "icon": "bi-rocket-takeoff",
             "content": "Soluciones digitales creadas para trazabilidad, automatización y continuidad operativa.",
             "children": [
@@ -299,7 +299,7 @@ def index(request):
         {
             "id": "tech",
             "label": "Habilidades técnicas",
-            "color": "#00d4ff",
+            "color": "#00f5a0",
             "icon": "bi-terminal",
             "content": "Stack organizado por áreas para construir sistemas web, móviles, datos y soporte operativo.",
             "children": [
@@ -419,7 +419,7 @@ def index(request):
         {
             "id": "experience",
             "label": "Experiencia",
-            "color": "#f7b733",
+            "color": "#b6ff3b",
             "icon": "bi-briefcase",
             "image": controlbins_logo,
             "content": context["experience"]["summary"],
@@ -443,7 +443,7 @@ def index(request):
         {
             "id": "education",
             "label": "Estudios",
-            "color": "#5eead4",
+            "color": "#63ff74",
             "icon": "bi-mortarboard",
             "content": "Ingeniería en Informática | INACAP Sede La Serena | Titulado: Abril 2025.",
             "institution": "INACAP Sede La Serena",
@@ -626,7 +626,7 @@ def index(request):
         {
             "id": "contact",
             "label": "Contacto",
-            "color": "#fb7185",
+            "color": "#d4ff00",
             "icon": "bi-send",
             "content": "Actualmente busco nuevas oportunidades en desarrollo de software, automatización de procesos y áreas afines.",
             "children": [
@@ -640,7 +640,7 @@ def index(request):
         {
             "id": "languages",
             "label": "Idiomas",
-            "color": "#a78bfa",
+            "color": "#8cff66",
             "icon": "bi-translate",
             "content": "Comunicación profesional en español nativo e inglés intermedio.",
             "children": [

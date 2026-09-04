@@ -147,3 +147,36 @@ class PortfolioViewTests(TestCase):
         self.assertIn("max-width: calc(var(--bubble-size) * 0.76)", styles)
         self.assertIn("landscape ? Math.min(rect.width * 0.35, 285)", script)
         self.assertNotIn("-webkit-line-clamp: 2;\n}", styles[styles.find(".bubble .label"):styles.find(".bubble .micro")])
+
+    def test_portfolio_uses_custom_green_alien_tech_theme(self):
+        base_dir = Path(__file__).resolve().parents[1]
+        styles = (base_dir / "static" / "portafoliosapp" / "css" / "style.css").read_text(encoding="utf-8")
+        bio_styles = (base_dir / "static" / "portafoliosapp" / "DigitalPortrait" / "DigitalPortrait.css").read_text(encoding="utf-8")
+
+        self.assertIn("--green: #39ff14", styles)
+        self.assertIn("--omni-core: #9dff2f", styles)
+        self.assertIn("conic-gradient(from 45deg", styles)
+        self.assertIn("border-radius: 0.75rem", styles[styles.find(".bubble .icon"):styles.find(".bubble .node-image")])
+        self.assertIn("--accent-color: #39ff14", bio_styles)
+
+    def test_child_module_nodes_use_readable_compact_sizing(self):
+        base_dir = Path(__file__).resolve().parents[1]
+        script = (base_dir / "static" / "portafoliosapp" / "js" / "main.js").read_text(encoding="utf-8")
+        styles = (base_dir / "static" / "portafoliosapp" / "css" / "style.css").read_text(encoding="utf-8")
+        module_block = styles[styles.find(".bubble.child.module-child .bubble-content"):styles.find(".detail-panel")]
+
+        self.assertIn('variant.includes("module-child")', script)
+        self.assertIn('styles.getPropertyValue("--module-child-size")', script)
+        self.assertIn("display: none", module_block)
+        self.assertIn("clamp(4.8rem", styles)
+        self.assertIn("clamp(4.2rem", styles)
+
+    def test_layout_freezes_during_browser_or_phone_zoom(self):
+        base_dir = Path(__file__).resolve().parents[1]
+        script = (base_dir / "static" / "portafoliosapp" / "js" / "main.js").read_text(encoding="utf-8")
+
+        self.assertIn("layoutViewport", script)
+        self.assertIn("shouldFreezeForZoom", script)
+        self.assertIn("window.visualViewport?.scale", script)
+        self.assertIn("viewport:zoom-freeze", script)
+        self.assertIn("if (!refreshLayoutViewport())", script)

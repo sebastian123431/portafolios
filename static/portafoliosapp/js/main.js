@@ -113,6 +113,8 @@
   let currentLevel = "home";
   let activeId = "profile";
   let resizeTimer = null;
+  let layoutViewport = null;
+  let lastDevicePixelRatio = window.devicePixelRatio || 1;
   const panelOpen = document.body.classList.contains("panel-open") && !document.body.classList.contains("panel-collapsed");
 
   const centerData = bubbles.find((bubble) => bubble.type === "center") || bubbles[0];
@@ -127,12 +129,42 @@
       .replace(/'/g, "&#039;");
   }
 
-  function readViewport() {
-    const viewport = window.visualViewport;
+  function readLiveViewport() {
     return {
-      width: Math.round(viewport?.width || window.innerWidth),
-      height: Math.round(viewport?.height || window.innerHeight),
+      width: Math.round(window.innerWidth),
+      height: Math.round(window.innerHeight),
     };
+  }
+
+  function readViewport() {
+    if (!layoutViewport) layoutViewport = readLiveViewport();
+    return layoutViewport;
+  }
+
+  function shouldFreezeForZoom(nextViewport) {
+    if (!layoutViewport) return false;
+    const visualScale = window.visualViewport?.scale || 1;
+    const currentDpr = window.devicePixelRatio || 1;
+    const dprChanged = Math.abs(currentDpr - lastDevicePixelRatio) > 0.01;
+    const sameOrientation = (nextViewport.width >= nextViewport.height) === (layoutViewport.width >= layoutViewport.height);
+
+    return sameOrientation && (Math.abs(visualScale - 1) > 0.01 || dprChanged);
+  }
+
+  function refreshLayoutViewport() {
+    const nextViewport = readLiveViewport();
+    if (!layoutViewport) {
+      layoutViewport = nextViewport;
+      lastDevicePixelRatio = window.devicePixelRatio || 1;
+      return true;
+    }
+
+    const orientationChanged = (nextViewport.width >= nextViewport.height) !== (layoutViewport.width >= layoutViewport.height);
+    if (shouldFreezeForZoom(nextViewport) && !orientationChanged) return false;
+
+    layoutViewport = nextViewport;
+    lastDevicePixelRatio = window.devicePixelRatio || 1;
+    return true;
   }
 
   function fitNodeScale(childCount = 0, viewport = readViewport()) {
@@ -166,11 +198,11 @@
         : limit(Math.min(usableWidth * 0.17, usableHeight * 0.28), 136, 206));
     const moduleChildSize = childCount > 12
       ? (compact
-        ? limit(Math.min(width * (landscapePhone ? 0.13 : portraitPhone ? 0.14 : 0.17), usableHeight * (portraitPhone ? 0.08 : 0.09)), 50, landscapePhone ? 70 : 72)
+        ? limit(Math.min(width * (landscapePhone ? 0.14 : portraitPhone ? 0.16 : 0.18), usableHeight * (portraitPhone ? 0.1 : 0.13)), landscapePhone ? 58 : 66, landscapePhone ? 78 : 90)
         : limit(Math.min(usableWidth * 0.11, usableHeight * 0.14), 78, 118))
       : (compact
-        ? limit(childSize * (portraitPhone ? 0.72 : 0.82), landscapePhone ? 48 : 54, landscapePhone ? 76 : 72)
-        : limit(childSize * 0.78, 118, 176));
+        ? limit(childSize * (portraitPhone ? 0.86 : 0.94), landscapePhone ? 58 : 70, landscapePhone ? 88 : 104)
+        : limit(childSize * 0.82, 128, 184));
 
     root.style.setProperty("--core-size", `${coreSize}px`);
     root.style.setProperty("--node-size", `${nodeSize}px`);
@@ -264,7 +296,13 @@
 
   function scheduleViewportAdapt() {
     window.clearTimeout(resizeTimer);
-    resizeTimer = window.setTimeout(() => adaptViewport(), 180);
+    resizeTimer = window.setTimeout(() => {
+      if (!refreshLayoutViewport()) {
+        logLayoutEvent("viewport:zoom-freeze", { live: readLiveViewport(), stable: readViewport(), dpr: window.devicePixelRatio || 1 });
+        return;
+      }
+      adaptViewport();
+    }, 180);
   }
 
   function syncClusterFrameCenter() {
@@ -378,7 +416,7 @@
         const target = points[next];
         const distance = Math.hypot(point.x - target.x, point.y - target.y);
         if (distance < (performanceLite ? 125 : 155)) {
-          ctx.strokeStyle = `rgba(53, 242, 167, ${performanceLite ? 0.06 - distance / 2600 : 0.1 - distance / 1900})`;
+          ctx.strokeStyle = `rgba(57, 255, 20, ${performanceLite ? 0.07 - distance / 2500 : 0.12 - distance / 1800})`;
           ctx.beginPath();
           ctx.moveTo(point.x, point.y);
           ctx.lineTo(target.x, target.y);
@@ -388,13 +426,13 @@
     });
 
     points.forEach((point, index) => {
-      ctx.fillStyle = index % 4 === 0 ? `rgba(255, 78, 205, ${point.a})` : `rgba(53, 242, 167, ${point.a})`;
+      ctx.fillStyle = index % 4 === 0 ? `rgba(212, 255, 0, ${point.a})` : `rgba(57, 255, 20, ${point.a})`;
       ctx.beginPath();
       ctx.arc(point.x, point.y, point.r, 0, Math.PI * 2);
       ctx.fill();
     });
 
-    ctx.strokeStyle = "rgba(24, 216, 255, 0.08)";
+    ctx.strokeStyle = "rgba(0, 245, 160, 0.08)";
     for (let y = 0; y < height; y += performanceLite ? 140 : 110) {
       ctx.beginPath();
       ctx.moveTo(0, y + 0.5);
@@ -732,7 +770,9 @@
       const styles = getComputedStyle(document.documentElement);
       const value = variant === "center"
         ? styles.getPropertyValue("--core-size")
-        : variant.includes("child")
+        : variant.includes("module-child")
+          ? styles.getPropertyValue("--module-child-size")
+          : variant.includes("child")
           ? styles.getPropertyValue("--child-size")
           : styles.getPropertyValue("--node-size");
       const parsed = Number.parseFloat(value || "120");
@@ -756,15 +796,21 @@
     const iconNode = element.querySelector(".icon");
 
     if (labelNode) {
-      const size = clamp(bubbleSize * 0.14 * labelScale, 11, 18);
+      const isModuleChild = variant.includes("module-child");
+      const size = isModuleChild
+        ? clamp(bubbleSize * 0.105 * labelScale, 8, 13)
+        : clamp(bubbleSize * 0.14 * labelScale, 11, 18);
       labelNode.style.fontSize = `${size}px`;
-      labelNode.style.maxWidth = `${clamp(bubbleSize * 0.68, 72, 180)}px`;
+      labelNode.style.maxWidth = `${clamp(bubbleSize * (isModuleChild ? 0.74 : 0.68), isModuleChild ? 48 : 72, isModuleChild ? 118 : 180)}px`;
     }
 
     if (microNode) {
-      const size = clamp(bubbleSize * 0.09 * microScale, 8, 15);
+      const isModuleChild = variant.includes("module-child");
+      const size = isModuleChild
+        ? clamp(bubbleSize * 0.062 * microScale, 6, 9)
+        : clamp(bubbleSize * 0.09 * microScale, 8, 15);
       microNode.style.fontSize = `${size}px`;
-      microNode.style.maxWidth = `${clamp(bubbleSize * 0.62, 66, 150)}px`;
+      microNode.style.maxWidth = `${clamp(bubbleSize * (isModuleChild ? 0.68 : 0.62), isModuleChild ? 44 : 66, isModuleChild ? 104 : 150)}px`;
     }
 
     if (centerNameNode) {
@@ -786,7 +832,10 @@
     }
 
     if (iconNode) {
-      const size = clamp(bubbleSize * 0.19 * iconScale, 24, 50);
+      const isModuleChild = variant.includes("module-child");
+      const size = isModuleChild
+        ? clamp(bubbleSize * 0.22 * iconScale, 18, 32)
+        : clamp(bubbleSize * 0.19 * iconScale, 24, 50);
       iconNode.style.width = `${size}px`;
       iconNode.style.height = `${size}px`;
       iconNode.style.minWidth = `${size}px`;
