@@ -655,3 +655,13 @@ def index(request):
     response.render()
     response.context = response.context_data
     return response
+
+
+def bibliografia(request):
+    """Render the biography/bibliography page with the scroll-driven portrait effect."""
+    context = {
+        "name": "Sebastián Espíndola",
+        "role": "Desarrollador Backend Python/Django y Full Stack",
+        "portrait_src": "/static/portafoliosapp/images/portrait/yo.png",
+    }
+    return TemplateResponse(request, "templatesapp/bibliografia.html", context)

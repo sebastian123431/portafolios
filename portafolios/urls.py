@@ -21,5 +21,6 @@ from portafoliosapp import views as app_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', app_views.index, name='index'),
+    path('bibliografia/', app_views.bibliografia, name='bibliografia'),
     path('api/reveal-contact/', app_views.reveal_contact, name='reveal_contact'),
 ]

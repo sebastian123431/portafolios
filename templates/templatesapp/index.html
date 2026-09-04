@@ -24,7 +24,10 @@
         <span class="kicker">{{ tech_stack }}</span>
         <h1>{{ name }}</h1>
       </div>
-      <a class="contact-link" href="{{ contact.linkedin }}" target="_blank" rel="noopener">LinkedIn</a>
+      <div class="topbar-actions">
+        <a class="contact-link" href="{% url 'bibliografia' %}">Bibliografia</a>
+        <a class="contact-link" href="{{ contact.linkedin }}" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
     </header>
 
     <div class="scene-shell">

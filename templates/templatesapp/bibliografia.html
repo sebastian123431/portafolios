@@ -1,0 +1,79 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Bibliografia profesional de {{ name }} con retrato digital interactivo.">
+  <title>Bibliografia - {{ name }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'portafoliosapp/DigitalPortrait/DigitalPortrait.css' %}">
+</head>
+<body>
+  <main class="bio-page">
+    <nav class="bio-nav" aria-label="Navegacion principal">
+      <a href="{% url 'index' %}"><span aria-hidden="true">←</span> Portafolio</a>
+      <span>Bibliografia</span>
+    </nav>
+
+    <section class="digitalization" data-digital-portrait data-portrait-src="{{ portrait_src }}">
+      <div class="hero-grid">
+        <article class="bio-copy">
+          <p class="kicker">Backend / Mobile / IA aplicada</p>
+          <h1>{{ name }}</h1>
+          <p>
+            {{ role }}, titulado de Ingenieria en Informatica. Construyo sistemas web,
+            APIs REST y aplicaciones Android offline-first pensadas para procesos reales donde
+            los datos, la continuidad y la adopcion importan.
+          </p>
+          <div class="tech-tags" aria-label="Stack tecnico">
+            <span>Python</span>
+            <span>Django REST</span>
+            <span>Kotlin</span>
+            <span>SQL Server</span>
+          </div>
+        </article>
+
+        <div class="portrait-zone">
+          <div class="orbit-ring orbit-ring-one" aria-hidden="true"></div>
+          <div class="orbit-ring orbit-ring-two" aria-hidden="true"></div>
+          <div class="portrait-stage" aria-label="Retrato digital animado de {{ name }}">
+            <img class="portrait" src="{{ portrait_src }}" alt="Retrato de {{ name }}" draggable="false">
+            <canvas class="graph" aria-hidden="true"></canvas>
+            <canvas class="analysis-canvas" aria-hidden="true"></canvas>
+            <div class="portrait-fallback" role="status">
+              <strong>Falta el PNG del retrato</strong>
+              <span>Colocalo en static/portafoliosapp/images/portrait/yo.png</span>
+            </div>
+          </div>
+          <div class="progress-readout" aria-hidden="true">
+            <span>Digitalizacion</span>
+            <span data-progress-label>0%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bio-content" aria-label="Bibliografia profesional">
+      <div>
+        <p class="kicker">Perfil profesional</p>
+        <h2>Construyo software pensando en el terreno donde se usa.</h2>
+      </div>
+      <p>
+        Mi trabajo combina backend, datos, soporte operativo y aplicaciones moviles. En proyectos
+        como ControlBins, la prioridad fue convertir procesos manuales en trazabilidad digital sin
+        perder continuidad cuando la conexion falla.
+      </p>
+      <p>
+        Esta pagina deja una base visual para representar esa forma de trabajo: una fotografia unica
+        se analiza en canvas, se convierte en nodos conectados y responde de forma precisa al scroll.
+      </p>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <script type="module" src="{% static 'portafoliosapp/DigitalPortrait/DigitalPortrait.js' %}"></script>
+</body>
+</html>

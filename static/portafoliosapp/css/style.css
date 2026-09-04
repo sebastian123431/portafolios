@@ -209,6 +209,13 @@ h1 {
   backdrop-filter: blur(16px);
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  pointer-events: auto;
+}
+
 .scene-shell {
   position: relative;
   min-height: var(--viewport-height, 100vh);
@@ -455,29 +462,26 @@ body.modal-open .bubble.is-floating {
 }
 
 .bubble .label {
-  display: -webkit-box;
+  display: block;
   max-width: calc(var(--bubble-size) * 0.68);
   overflow: hidden;
   color: #fff;
   font-size: clamp(0.58rem, calc(var(--bubble-size) * 0.14), 0.92rem);
   font-weight: 900;
-  line-height: 1.02;
-  text-overflow: ellipsis;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  line-height: 1.05;
+  overflow-wrap: normal;
+  text-wrap: balance;
 }
 
 .bubble .micro {
-  display: -webkit-box;
+  display: block;
   max-width: calc(var(--bubble-size) * 0.62);
   overflow: hidden;
   color: rgba(244, 255, 249, 0.7);
   font-size: clamp(0.42rem, calc(var(--bubble-size) * 0.08), 0.7rem);
   font-weight: 800;
-  line-height: 1.08;
-  text-overflow: ellipsis;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  line-height: 1.14;
+  overflow-wrap: anywhere;
 }
 
 .bubble .node-meta {
@@ -490,8 +494,7 @@ body.modal-open .bubble.is-floating {
   letter-spacing: 0.11em;
   line-height: 1;
   opacity: 0.75;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .level-tag {
@@ -2493,21 +2496,23 @@ html.perf-lite .connector-node {
   }
 
   .bubble .label {
-    max-width: 4.8rem;
-    font-size: 0.64rem;
-    line-height: 1.03;
+    max-width: calc(var(--bubble-size) * 0.76);
+    font-size: clamp(0.72rem, 2vw, 1rem);
+    line-height: 1.04;
   }
 
   .bubble .micro {
-    display: none;
+    display: block;
+    max-width: calc(var(--bubble-size) * 0.7);
+    font-size: clamp(0.5rem, 1.35vw, 0.72rem);
+    line-height: 1.16;
   }
 
   .bubble .node-meta {
-    max-width: 5rem;
+    max-width: calc(var(--bubble-size) * 0.72);
     overflow: hidden;
-    font-size: 0.44rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: clamp(0.42rem, 1.2vw, 0.56rem);
+    white-space: normal;
   }
 
   .level-tag {
@@ -2846,6 +2851,8 @@ html.perf-lite .connector-node {
   .bubble.child .label {
     max-width: 4.4rem;
     font-size: 0.58rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .bubble.primary .node-meta,

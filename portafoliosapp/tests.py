@@ -137,3 +137,13 @@ class PortfolioViewTests(TestCase):
         self.assertIn("mode === \"children\" ? 150 : 152", script)
         self.assertIn("body.panel-open .bubble.child.module-child .level-tag", styles)
         self.assertIn("body.panel-collapsed .bubble.child.module-child .level-tag", styles)
+
+    def test_home_nodes_keep_readable_labels_on_tablet_layout(self):
+        base_dir = Path(__file__).resolve().parents[1]
+        script = (base_dir / "static" / "portafoliosapp" / "js" / "main.js").read_text(encoding="utf-8")
+        styles = (base_dir / "static" / "portafoliosapp" / "css" / "style.css").read_text(encoding="utf-8")
+
+        self.assertIn("text-wrap: balance", styles)
+        self.assertIn("max-width: calc(var(--bubble-size) * 0.76)", styles)
+        self.assertIn("landscape ? Math.min(rect.width * 0.35, 285)", script)
+        self.assertNotIn("-webkit-line-clamp: 2;\n}", styles[styles.find(".bubble .label"):styles.find(".bubble .micro")])

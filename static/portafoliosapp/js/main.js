@@ -152,10 +152,10 @@
     const landscapePhone = shortLandscape;
 
     const coreSize = compact
-      ? limit(Math.min(width * (landscapePhone ? 0.22 : portraitPhone ? 0.24 : 0.28), usableHeight * (portraitPhone ? 0.18 : 0.23)), landscapePhone ? 90 : 92, landscapePhone ? 132 : 118)
+      ? limit(Math.min(width * (landscapePhone ? 0.22 : portraitPhone ? 0.24 : landscape ? 0.22 : 0.28), usableHeight * (portraitPhone ? 0.18 : landscape ? 0.28 : 0.23)), landscapePhone ? 90 : 104, landscapePhone ? 132 : landscape ? 174 : 132)
       : limit(Math.min(usableWidth * 0.15, usableHeight * 0.28), 170, 224);
     const nodeSize = compact
-      ? limit(Math.min(width * (landscapePhone ? 0.13 : portraitPhone ? 0.16 : 0.18), usableHeight * (portraitPhone ? 0.12 : 0.14)), landscapePhone ? 58 : 62, landscapePhone ? 88 : 82)
+      ? limit(Math.min(width * (landscapePhone ? 0.13 : portraitPhone ? 0.16 : landscape ? 0.17 : 0.18), usableHeight * (portraitPhone ? 0.12 : landscape ? 0.22 : 0.14)), landscapePhone ? 58 : 78, landscapePhone ? 88 : landscape ? 138 : 96)
       : limit(Math.min(usableWidth * 0.12, usableHeight * 0.17), 106, 156);
     const childSize = denseChildren
       ? (compact
@@ -502,7 +502,7 @@
       : (shortLandscape
         ? items.map((_, index) => ({ x: rect.width * landscapeHome[index % landscapeHome.length][0], y: rect.height * landscapeHome[index % landscapeHome.length][1] }))
         : compact
-        ? orbitPoints(items.length, portraitPhone ? 135 : (phonePanel ? 140 : 160), portraitPhone ? 105 : 120)
+        ? orbitPoints(items.length, portraitPhone ? 135 : landscape ? Math.min(rect.width * 0.35, 285) : (phonePanel ? 140 : 180), portraitPhone ? 105 : landscape ? Math.min(rect.height * 0.27, 180) : 130)
         : orbitPoints(items.length, 250, 166));
 
     const nodes = orderedItems.map((item, index) => {
