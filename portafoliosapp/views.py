@@ -1,4 +1,4 @@
-import json
+﻿import json
 from urllib.parse import quote_plus
 
 from django.http import JsonResponse
@@ -39,6 +39,7 @@ def reveal_contact(request):
 def index(request):
     """Render the portfolio page as an interactive Anime.js bubble universe."""
     linkedin_url = "https://linkedin.com/in/sebastian-espindola-46a521334"
+    github_url = "https://github.com/sebastian123431"
     linkedin_qr = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={quote_plus(linkedin_url)}"
     campus_query = "INACAP Sede La Serena, Av. Francisco de Aguirre 389, La Serena, Chile"
     campus_lat = -29.9068
@@ -46,12 +47,11 @@ def index(request):
     campus_map = f"https://www.google.com/maps?q={quote_plus(campus_query)}&output=embed"
     campus_link = f"https://www.google.com/maps/search/?api=1&query={quote_plus(campus_query)}"
     controlbins_logo = "/static/portafoliosapp/images/controlbins-logo.png"
-    cv_url = "/static/portafoliosapp/docs/cv-sebastian-espindola.pdf"
 
     encrypted_email = encrypt_value("seba501090@gmail.com")
     encrypted_phone = encrypt_value("+56 9 5380 4158")
     encrypted_linkedin = encrypt_value(linkedin_url)
-    encrypted_cv = encrypt_value(cv_url)
+    encrypted_github = encrypt_value(github_url)
 
     context = {
         "name": "Sebastián Espíndola",
@@ -70,14 +70,14 @@ def index(request):
             "phone": encrypted_phone,
             "location": "Vicuña, Coquimbo, Chile",
             "linkedin": linkedin_url,
+            "github": github_url,
             "linkedin_qr": linkedin_qr,
-            "cv": cv_url,
         },
         "contact_protected": {
             "email": encrypted_email,
             "phone": encrypted_phone,
             "linkedin": encrypted_linkedin,
-            "cv": encrypted_cv,
+            "github": encrypted_github,
         },
         "experience": {
             "title": "Asistente de Informática",
@@ -262,6 +262,13 @@ def index(request):
             "subtitle": context["title"],
             "tagline": context["tagline"],
             "stats": ["Python", "Django", "Kotlin", "SQL Server"],
+            "actions": [
+                {
+                    "label": "Ver bibliografia",
+                    "href": "/bibliografia/",
+                    "icon": "bi-person-vcard",
+                },
+            ],
             "sections": [
                 {
                     "heading": "Autónomo por necesidad",
@@ -299,7 +306,7 @@ def index(request):
         {
             "id": "tech",
             "label": "Habilidades técnicas",
-            "color": "#00f5a0",
+            "color": "#00e6ff",
             "icon": "bi-terminal",
             "content": "Stack organizado por áreas para construir sistemas web, móviles, datos y soporte operativo.",
             "children": [
@@ -419,7 +426,7 @@ def index(request):
         {
             "id": "experience",
             "label": "Experiencia",
-            "color": "#b6ff3b",
+            "color": "#ff8a1c",
             "icon": "bi-briefcase",
             "image": controlbins_logo,
             "content": context["experience"]["summary"],
@@ -626,7 +633,7 @@ def index(request):
         {
             "id": "contact",
             "label": "Contacto",
-            "color": "#d4ff00",
+            "color": "#ffb020",
             "icon": "bi-send",
             "content": "Actualmente busco nuevas oportunidades en desarrollo de software, automatización de procesos y áreas afines.",
             "children": [
@@ -634,13 +641,13 @@ def index(request):
                 {"label": "Teléfono", "icon": "bi-telephone", "text": "Información protegida. Haz clic para revelar el teléfono.", "secret_value": encrypted_phone, "secret_kind": "phone", "href": "#"},
                 {"label": "Ubicación", "icon": "bi-geo-alt", "text": f'{context["contact"]["location"]}. Base actual en la Región de Coquimbo, con interés en oportunidades remotas, híbridas o presenciales según el proyecto.'},
                 {"label": "LinkedIn", "icon": "bi-linkedin", "text": "Perfil profesional para revisar trayectoria, contacto y actualizaciones laborales.", "href": linkedin_url, "secret_value": encrypted_linkedin, "secret_kind": "linkedin"},
-                {"label": "Descargar CV", "icon": "bi-file-earmark-arrow-down", "text": "CV protegido. Haz clic para revelar el acceso al documento.", "secret_value": encrypted_cv, "secret_kind": "cv", "href": "#"},
+                {"label": "GitHub", "icon": "bi-github", "text": "Repositorio profesional para revisar proyectos, codigo y evolucion tecnica.", "href": github_url, "secret_value": encrypted_github, "secret_kind": "github"},
             ],
         },
         {
             "id": "languages",
             "label": "Idiomas",
-            "color": "#8cff66",
+            "color": "#9bff6b",
             "icon": "bi-translate",
             "content": "Comunicación profesional en español nativo e inglés intermedio.",
             "children": [

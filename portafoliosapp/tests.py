@@ -150,14 +150,20 @@ class PortfolioViewTests(TestCase):
 
     def test_portfolio_uses_custom_green_alien_tech_theme(self):
         base_dir = Path(__file__).resolve().parents[1]
+        script = (base_dir / "static" / "portafoliosapp" / "js" / "main.js").read_text(encoding="utf-8")
         styles = (base_dir / "static" / "portafoliosapp" / "css" / "style.css").read_text(encoding="utf-8")
         bio_styles = (base_dir / "static" / "portafoliosapp" / "DigitalPortrait" / "DigitalPortrait.css").read_text(encoding="utf-8")
 
         self.assertIn("--green: #39ff14", styles)
         self.assertIn("--omni-core: #9dff2f", styles)
+        self.assertIn("--rex-orange: #ff8a1c", styles)
+        self.assertIn("--rex-blue: #00e6ff", styles)
         self.assertIn("conic-gradient(from 45deg", styles)
         self.assertIn("border-radius: 0.75rem", styles[styles.find(".bubble .icon"):styles.find(".bubble .node-image")])
         self.assertIn("--accent-color: #39ff14", bio_styles)
+        self.assertIn("--rex-orange: #ff8a1c", bio_styles)
+        self.assertIn("255, 138, 28", script)
+        self.assertIn("0, 230, 255", script)
 
     def test_child_module_nodes_use_readable_compact_sizing(self):
         base_dir = Path(__file__).resolve().parents[1]
@@ -171,6 +177,19 @@ class PortfolioViewTests(TestCase):
         self.assertIn("clamp(4.8rem", styles)
         self.assertIn("clamp(4.2rem", styles)
 
+    def test_compact_nodes_do_not_truncate_labels_with_ellipsis(self):
+        base_dir = Path(__file__).resolve().parents[1]
+        script = (base_dir / "static" / "portafoliosapp" / "js" / "main.js").read_text(encoding="utf-8")
+        styles = (base_dir / "static" / "portafoliosapp" / "css" / "style.css").read_text(encoding="utf-8")
+        mobile_block = styles[styles.find("@media (max-width: 520px)"):styles.find("@media (max-height: 430px)")]
+
+        self.assertIn("const compactNodeLabels", script)
+        self.assertIn('"Infraestructura": ["Infra", "estructura"]', script)
+        self.assertIn('"Habilidades técnicas": ["Habilidades", "técnicas"]', script)
+        self.assertIn("nodeLabelHTML(data, variant)", script)
+        self.assertIn("overflow-wrap: anywhere", mobile_block)
+        self.assertNotIn("text-overflow: ellipsis", mobile_block)
+
     def test_layout_freezes_during_browser_or_phone_zoom(self):
         base_dir = Path(__file__).resolve().parents[1]
         script = (base_dir / "static" / "portafoliosapp" / "js" / "main.js").read_text(encoding="utf-8")
@@ -180,3 +199,38 @@ class PortfolioViewTests(TestCase):
         self.assertIn("window.visualViewport?.scale", script)
         self.assertIn("viewport:zoom-freeze", script)
         self.assertIn("if (!refreshLayoutViewport())", script)
+
+    def test_animation_runtime_has_performance_guards(self):
+        base_dir = Path(__file__).resolve().parents[1]
+        main_script = (base_dir / "static" / "portafoliosapp" / "js" / "main.js").read_text(encoding="utf-8")
+        portrait_script = (base_dir / "static" / "portafoliosapp" / "DigitalPortrait" / "DigitalPortrait.js").read_text(encoding="utf-8")
+        graph_generator = (base_dir / "static" / "portafoliosapp" / "DigitalPortrait" / "graphGenerator.js").read_text(encoding="utf-8")
+        graph_renderer = (base_dir / "static" / "portafoliosapp" / "DigitalPortrait" / "graphRenderer.js").read_text(encoding="utf-8")
+
+        self.assertIn("const enableLayoutLogs = false", main_script)
+        self.assertIn("IntersectionObserver", portrait_script)
+        self.assertIn("profile.fps", portrait_script)
+        self.assertIn("maxNodes: lite ? 720 : 1450", portrait_script)
+        self.assertIn("const buckets = new Map()", graph_generator)
+        self.assertIn("bucketSize = connectionDistance", graph_generator)
+        self.assertIn("refreshColors", graph_renderer)
+
+    def test_github_is_visible_and_cv_action_is_removed(self):
+        response = self.client.get("/")
+        bubbles = json.loads(response.context["bubbles_json"])
+        contact = next(node for node in bubbles if node["id"] == "contact")
+        labels = [child["label"] for child in contact["children"]]
+
+        self.assertContains(response, "https://github.com/sebastian123431")
+        self.assertIn("GitHub", labels)
+        self.assertNotIn("Descargar CV", labels)
+        self.assertNotContains(response, "Descargar CV")
+
+    def test_profile_panel_links_to_bibliography(self):
+        response = self.client.get("/")
+        bubbles = json.loads(response.context["bubbles_json"])
+        profile = next(node for node in bubbles if node["id"] == "profile")
+
+        self.assertIn("actions", profile)
+        self.assertEqual(profile["actions"][0]["href"], "/bibliografia/")
+        self.assertIn("bibliograf", profile["actions"][0]["label"].lower())
