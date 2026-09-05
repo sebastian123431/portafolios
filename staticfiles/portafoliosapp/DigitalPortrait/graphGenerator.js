@@ -9,7 +9,7 @@ function randomFrom(seed) {
 }
 
 function revealValue(nx, ny) {
-  return Math.max(0, Math.min(1, (ny * 0.78) + ((1 - nx) * 0.42) - 0.05));
+  return Math.max(0, Math.min(0.92, (ny * 0.68) + ((1 - nx) * 0.34) - 0.04));
 }
 
 function colorFromPixel(pixel, edge, random) {
@@ -41,15 +41,15 @@ function localContrast(imageData, width, height, x, y, centerLum) {
 }
 
 function regionWeight(nx, ny) {
-  const cap = ny < 0.31 ? 0.28 : 0;
-  const visor = nx > 0.42 && ny > 0.22 && ny < 0.38 ? 0.18 : 0;
-  const capSide = nx > 0.18 && nx < 0.86 && ny > 0.08 && ny < 0.36 ? 0.16 : 0;
-  const face = nx > 0.2 && nx < 0.8 && ny > 0.2 && ny < 0.57 ? 0.13 : 0;
-  const neck = nx > 0.28 && nx < 0.72 && ny > 0.52 && ny < 0.66 ? 0.12 : 0;
-  const jacket = ny > 0.62 ? 0.11 : 0;
-  const shoulder = ny > 0.7 && (nx < 0.36 || nx > 0.64) ? 0.12 : 0;
+  const cap = ny < 0.31 ? 0.24 : 0;
+  const visor = nx > 0.42 && ny > 0.22 && ny < 0.38 ? 0.15 : 0;
+  const capSide = nx > 0.18 && nx < 0.86 && ny > 0.08 && ny < 0.36 ? 0.14 : 0;
+  const face = nx > 0.2 && nx < 0.8 && ny > 0.2 && ny < 0.57 ? 0.12 : 0;
+  const neck = nx > 0.28 && nx < 0.72 && ny > 0.52 && ny < 0.66 ? 0.08 : 0;
+  const jacket = ny > 0.62 ? 0.045 : 0;
+  const shoulder = ny > 0.7 && (nx < 0.36 || nx > 0.64) ? 0.055 : 0;
   const center = Math.max(0, 0.09 - Math.abs(nx - 0.5) * 0.14);
-  const clothingCenter = ny > 0.58 ? Math.max(0, 0.05 - Math.abs(nx - 0.5) * 0.08) : 0;
+  const clothingCenter = ny > 0.58 ? Math.max(0, 0.022 - Math.abs(nx - 0.5) * 0.05) : 0;
   return cap + visor + capSide + face + neck + jacket + shoulder + center + clothingCenter;
 }
 
@@ -63,8 +63,8 @@ function graphRegion(nx, ny, type) {
 export function generateGraph(sample, options = {}) {
   const random = randomFrom(92821);
   const { imageData, edges, width, height } = sample;
-  const maxNodes = options.maxNodes || (window.innerWidth < 760 ? 820 : 1650);
-  const stride = Math.max(2, Math.round(Math.sqrt((width * height) / (maxNodes * 2.45))));
+  const maxNodes = options.maxNodes || (window.innerWidth < 760 ? 520 : 980);
+  const stride = Math.max(2, Math.round(Math.sqrt((width * height) / (maxNodes * 2.05))));
   const candidates = [];
 
   for (let y = 3; y < height - 3; y += stride) {
@@ -86,16 +86,21 @@ export function generateGraph(sample, options = {}) {
         readPixel(imageData, index + width).a,
       ];
       const alphaEdge = alphaNeighbors.some((value) => value < 0.08) ? 0.72 : 0;
-      const structure = Math.max(edge, contrast * 1.9, alphaEdge, darkStructure);
+      const structure = Math.max(edge, contrast * 1.75, alphaEdge, darkStructure);
       const weight = regionWeight(nxBase, nyBase);
       const density = Math.min(1, structure + weight);
       const clothingZone = nyBase > 0.58;
       const capZone = nyBase < 0.36 && nxBase > 0.12 && nxBase < 0.9;
       const faceZone = nxBase > 0.22 && nxBase < 0.78 && nyBase > 0.18 && nyBase < 0.56;
-      const faceFeature = faceZone && (edge > 0.09 || contrast > 0.075 || darkStructure > 0.13);
-      const clothingFeature = clothingZone && (alphaEdge > 0 || edge > 0.13 || contrast > 0.105 || darkStructure > 0.18);
-      const flatChance = pixel.a > 0.72 ? (capZone ? 0.16 : clothingZone ? 0.052 : faceZone ? 0.035 : 0.09) : 0.032;
-      const keep = density > (clothingFeature ? 0.102 : faceFeature || capZone ? 0.092 : clothingZone ? 0.18 : 0.12) || random() < flatChance + density * (clothingFeature ? 0.46 : faceFeature || capZone ? 0.62 : clothingZone ? 0.2 : 0.42);
+      const neckZone = nxBase > 0.28 && nxBase < 0.72 && nyBase > 0.52 && nyBase < 0.66;
+      const faceFeature = faceZone && (edge > 0.075 || contrast > 0.058 || darkStructure > 0.11);
+      const clothingFeature = clothingZone && (alphaEdge > 0 || edge > 0.17 || contrast > 0.14 || darkStructure > 0.23);
+      const faceSurface = faceZone && !faceFeature && luminance > 0.32 && luminance < 0.86;
+      const neckSurface = neckZone && !faceFeature && !clothingFeature && luminance > 0.28;
+      const flatChance = pixel.a > 0.72 ? (capZone ? 0.08 : clothingZone ? 0.014 : faceZone ? 0.04 : 0.04) : 0.014;
+      const threshold = clothingFeature ? 0.17 : faceFeature || capZone ? 0.09 : faceSurface || neckSurface ? 0.135 : clothingZone ? 0.3 : 0.15;
+      const randomKeep = flatChance + density * (clothingFeature ? 0.22 : faceFeature || capZone ? 0.44 : faceSurface || neckSurface ? 0.18 : clothingZone ? 0.055 : 0.2);
+      const keep = density > threshold || random() < randomKeep;
 
       if (!keep) continue;
 
@@ -103,7 +108,11 @@ export function generateGraph(sample, options = {}) {
       const jitterY = (random() - 0.5) * stride * 0.72;
       const nx = Math.max(0, Math.min(1, (x + jitterX) / width));
       const ny = Math.max(0, Math.min(1, (y + jitterY) / height));
-      const type = clothingZone && !clothingFeature
+      const type = faceSurface
+        ? "face-surface"
+        : neckSurface
+        ? "neck-surface"
+        : clothingZone && !clothingFeature
         ? "clothing-surface"
         : capZone && luminance < 0.55 && !faceFeature
         ? "cap"
@@ -120,11 +129,11 @@ export function generateGraph(sample, options = {}) {
         type,
         region,
         reveal: revealValue(nx, ny),
-        radius: 0.42 + density * 1.55 + (type === "surface" || type === "clothing-surface" ? random() * 0.34 : type === "cap" ? random() * 0.68 : random() * 0.82),
-        opacity: 0.24 + density * 0.62 + (type === "surface" || type === "clothing-surface" ? random() * 0.08 : random() * 0.18),
+        radius: 0.28 + density * 1.0 + (type === "face-surface" || type === "neck-surface" ? random() * 0.16 : type === "surface" || type === "clothing-surface" ? random() * 0.14 : type === "cap" ? random() * 0.36 : random() * 0.46),
+        opacity: 0.18 + density * 0.5 + (type === "face-surface" || type === "neck-surface" ? random() * 0.07 : type === "surface" || type === "clothing-surface" ? random() * 0.04 : random() * 0.12),
         color: colorFromPixel(pixel, edge, random),
-        driftX: (random() - 0.5) * (type === "surface" || type === "clothing-surface" ? 8 : type === "cap" ? 13 : 18),
-        driftY: (random() - 0.5) * (type === "surface" || type === "clothing-surface" ? 8 : type === "cap" ? 13 : 18),
+        driftX: (random() - 0.5) * (type === "surface" || type === "clothing-surface" ? 5 : type === "cap" ? 10 : 14),
+        driftY: (random() - 0.5) * (type === "surface" || type === "clothing-surface" ? 5 : type === "cap" ? 10 : 14),
         phase: random() * Math.PI * 2,
         speed: 0.35 + random() * 0.8,
       });
@@ -144,8 +153,8 @@ export function generateGraph(sample, options = {}) {
 
 function connectNodes(nodes) {
   const connections = [];
-  const maxConnections = window.innerWidth < 760 ? 3 : 4;
-  const connectionDistance = window.innerWidth < 760 ? 0.073 : 0.066;
+  const maxConnections = window.innerWidth < 760 ? 2 : 3;
+  const connectionDistance = window.innerWidth < 760 ? 0.064 : 0.058;
   const counts = new Map();
   const buckets = new Map();
   const bucketSize = connectionDistance;
@@ -190,9 +199,9 @@ function connectNodes(nodes) {
         if (!canConnectRegions(node, target, neighbor.distance, connectionDistance)) return;
         const bothSurface = (node.type === "surface" || node.type === "clothing-surface") && (target.type === "surface" || target.type === "clothing-surface");
         const capConnection = node.type === "cap" || target.type === "cap";
-        if (bothSurface && neighbor.distance > connectionDistance * 0.62) return;
-        if ((node.type === "clothing-surface" || target.type === "clothing-surface") && neighbor.distance > connectionDistance * 0.45) return;
-        if (capConnection && neighbor.distance > connectionDistance * 0.88) return;
+        if (bothSurface && neighbor.distance > connectionDistance * 0.52) return;
+        if ((node.type === "clothing-surface" || target.type === "clothing-surface") && neighbor.distance > connectionDistance * 0.36) return;
+        if (capConnection && neighbor.distance > connectionDistance * 0.82) return;
         counts.set(index, fromCount + 1);
         counts.set(neighbor.index, toCount + 1);
         connections.push({

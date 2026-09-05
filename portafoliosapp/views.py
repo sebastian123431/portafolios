@@ -1,8 +1,11 @@
 ﻿import json
+from pathlib import Path
 from urllib.parse import quote_plus
 
+from django.contrib.staticfiles import finders
 from django.http import JsonResponse
 from django.template.response import TemplateResponse
+from django.templatetags.static import static
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
 
@@ -20,6 +23,22 @@ if not getattr(TemplateResponse, "_portfolio_context_compat", False):
 
     TemplateResponse.context = property(_get_template_response_context, _set_template_response_context)
     TemplateResponse._portfolio_context_compat = True
+
+
+def versioned_static(path):
+    """Return a static asset URL that changes when the file is replaced."""
+    url = static(path)
+    found_path = finders.find(path)
+    if not found_path:
+        return url
+
+    try:
+        version = int(Path(found_path).stat().st_mtime)
+    except OSError:
+        return url
+
+    separator = "&" if "?" in url else "?"
+    return f"{url}{separator}v={version}"
 
 
 @csrf_protect
@@ -46,7 +65,7 @@ def index(request):
     campus_lng = -71.2502
     campus_map = f"https://www.google.com/maps?q={quote_plus(campus_query)}&output=embed"
     campus_link = f"https://www.google.com/maps/search/?api=1&query={quote_plus(campus_query)}"
-    controlbins_logo = "/static/portafoliosapp/images/controlbins-logo.png"
+    controlbins_logo = versioned_static("portafoliosapp/images/controlbins-logo.png")
 
     encrypted_email = encrypt_value("seba501090@gmail.com")
     encrypted_phone = encrypt_value("+56 9 5380 4158")
@@ -669,6 +688,8 @@ def bibliografia(request):
     context = {
         "name": "Sebastián Espíndola",
         "role": "Desarrollador Backend Python/Django y Full Stack",
-        "portrait_src": "/static/portafoliosapp/images/portrait/yo.png",
+        "portrait_src": versioned_static("portafoliosapp/images/portrait/yo.png"),
+        "bio_css_src": versioned_static("portafoliosapp/DigitalPortrait/DigitalPortrait.css"),
+        "bio_js_src": versioned_static("portafoliosapp/DigitalPortrait/DigitalPortrait.js"),
     }
     return TemplateResponse(request, "templatesapp/bibliografia.html", context)

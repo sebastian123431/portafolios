@@ -7,15 +7,20 @@ const animeDriver = window.anime || {
 };
 
 function setPortraitMask(stage, progress) {
-  const boundary = 8 + progress * 112;
-  stage.style.setProperty("--digital-progress", progress.toFixed(3));
+  const visualProgress = normalizeProgress(progress);
+  const boundary = 8 + visualProgress * 112;
+  stage.style.setProperty("--digital-progress", visualProgress.toFixed(3));
   stage.style.setProperty("--portrait-progress", `${boundary.toFixed(2)}%`);
-  stage.style.setProperty("--portrait-saturate", Math.max(0.42, 1 - progress * 0.52).toFixed(3));
-  stage.style.setProperty("--portrait-contrast", (1 + progress * 0.1).toFixed(3));
-  stage.style.setProperty("--frame-opacity", (0.18 + progress * 0.5).toFixed(3));
-  const pulseOpacity = 0.18 + progress * 0.38;
+  stage.style.setProperty("--portrait-saturate", Math.max(0.42, 1 - visualProgress * 0.52).toFixed(3));
+  stage.style.setProperty("--portrait-contrast", (1 + visualProgress * 0.1).toFixed(3));
+  stage.style.setProperty("--frame-opacity", (0.18 + visualProgress * 0.5).toFixed(3));
+  const pulseOpacity = 0.18 + visualProgress * 0.38;
   stage.parentElement?.style.setProperty("--pulse-opacity", pulseOpacity.toFixed(3));
   stage.parentElement?.style.setProperty("--pulse-opacity-soft", (pulseOpacity * 0.65).toFixed(3));
+}
+
+function normalizeProgress(progress) {
+  return progress >= 0.965 ? 1 : Math.max(0, Math.min(1, progress));
 }
 
 function fitImageToStage(image, stage) {
@@ -52,7 +57,7 @@ function createTimeline(state) {
 
 function updateReadout(root, progress) {
   const label = root.querySelector("[data-progress-label]");
-  if (label) label.textContent = `${Math.round(progress * 100)}%`;
+  if (label) label.textContent = `${Math.round(normalizeProgress(progress) * 100)}%`;
 }
 
 function performanceProfile() {
@@ -63,8 +68,8 @@ function performanceProfile() {
 
   return {
     lite,
-    sampleWidth: lite ? 320 : 440,
-    maxNodes: lite ? 720 : 1450,
+    sampleWidth: lite ? 300 : 400,
+    maxNodes: lite ? 520 : 980,
     fps: lite ? 24 : 42,
   };
 }
@@ -100,7 +105,7 @@ async function boot(root) {
   fitImageToStage(image, stage);
   renderer.resize();
 
-  const sample = samplePortrait(image, analysisCanvas, {
+  const sample = await samplePortrait(image, analysisCanvas, {
     sampleWidth: profile.sampleWidth,
   });
   renderer.setGraph(generateGraph(sample, { maxNodes: profile.maxNodes }));
@@ -110,7 +115,7 @@ async function boot(root) {
     if (!running) return;
     const frameInterval = 1000 / profile.fps;
     if (visible && time - lastFrameTime >= frameInterval) {
-      renderer.render(state.progress, time);
+      renderer.render(normalizeProgress(state.progress), time);
       lastFrameTime = time;
     }
     requestAnimationFrame(renderLoop);
@@ -140,7 +145,7 @@ async function boot(root) {
   requestAnimationFrame((time) => {
     renderer.resize();
     setPortraitMask(stage, state.progress);
-    renderer.render(state.progress, time);
+      renderer.render(normalizeProgress(state.progress), time);
   });
 
   requestAnimationFrame(renderLoop);

@@ -1,6 +1,7 @@
 import { detectEdges } from "./edgeDetector.js";
+import { enhanceEdgesWithOpenCV } from "./openCvEnhancer.js";
 
-export function samplePortrait(image, canvas, options = {}) {
+export async function samplePortrait(image, canvas, options = {}) {
   const sampleWidth = options.sampleWidth || 420;
   const ratio = image.naturalHeight / image.naturalWidth;
   const width = sampleWidth;
@@ -13,9 +14,21 @@ export function samplePortrait(image, canvas, options = {}) {
   ctx.drawImage(image, 0, 0, width, height);
 
   const imageData = ctx.getImageData(0, 0, width, height);
-  const edges = detectEdges(imageData, width, height);
+  const fallbackEdges = detectEdges(imageData, width, height);
+  const opencvEdges = await enhanceEdgesWithOpenCV(imageData, width, height);
+  const edges = opencvEdges ? blendEdges(fallbackEdges, opencvEdges) : fallbackEdges;
 
-  return { imageData, edges, width, height };
+  return { imageData, edges, width, height, edgeSource: opencvEdges ? "opencv" : "fallback" };
+}
+
+function blendEdges(fallbackEdges, opencvEdges) {
+  const result = new Float32Array(fallbackEdges.length);
+
+  for (let index = 0; index < result.length; index += 1) {
+    result[index] = Math.min(1, fallbackEdges[index] * 0.55 + opencvEdges[index] * 0.72);
+  }
+
+  return result;
 }
 
 export function readPixel(imageData, index) {

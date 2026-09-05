@@ -131,10 +131,14 @@ class PortfolioViewTests(TestCase):
         self.assertIn("body.panel-open .bubble", styles)
         self.assertIn("panel-collapsed", script)
         self.assertIn('!document.body.classList.contains("panel-collapsed")', script)
-        self.assertIn("panelOpen && phone", script)
+        self.assertIn("function isPanelExpanded", script)
+        self.assertIn("phone && panelOpen", script)
         self.assertIn("function solidifyLayout", script)
         self.assertIn("parentObstacle", script)
-        self.assertIn("mode === \"children\" ? 150 : 152", script)
+        self.assertIn("function mobilePortraitChildrenPoints", script)
+        self.assertIn("function childrenParentY", script)
+        self.assertIn("--module-parent-size", styles)
+        self.assertIn("height: calc(var(--viewport-height, 100svh) - var(--mobile-panel-height) - 0.75rem)", styles)
         self.assertIn("body.panel-open .bubble.child.module-child .level-tag", styles)
         self.assertIn("body.panel-collapsed .bubble.child.module-child .level-tag", styles)
 
@@ -184,8 +188,10 @@ class PortfolioViewTests(TestCase):
         mobile_block = styles[styles.find("@media (max-width: 520px)"):styles.find("@media (max-height: 430px)")]
 
         self.assertIn("const compactNodeLabels", script)
-        self.assertIn('"Infraestructura": ["Infra", "estructura"]', script)
+        self.assertIn('"Infraestructura": ["Infraestructura"]', script)
         self.assertIn('"Habilidades técnicas": ["Habilidades", "técnicas"]', script)
+        self.assertIn('"Asistente de Informática": ["Asistente", "de Informática"]', script)
+        self.assertIn('"CCNAv7: Introduction to Networks": ["CCNAv7:", "Introduction", "to Networks"]', script)
         self.assertIn("nodeLabelHTML(data, variant)", script)
         self.assertIn("overflow-wrap: anywhere", mobile_block)
         self.assertNotIn("text-overflow: ellipsis", mobile_block)
@@ -206,14 +212,24 @@ class PortfolioViewTests(TestCase):
         portrait_script = (base_dir / "static" / "portafoliosapp" / "DigitalPortrait" / "DigitalPortrait.js").read_text(encoding="utf-8")
         graph_generator = (base_dir / "static" / "portafoliosapp" / "DigitalPortrait" / "graphGenerator.js").read_text(encoding="utf-8")
         graph_renderer = (base_dir / "static" / "portafoliosapp" / "DigitalPortrait" / "graphRenderer.js").read_text(encoding="utf-8")
+        image_sampler = (base_dir / "static" / "portafoliosapp" / "DigitalPortrait" / "imageSampler.js").read_text(encoding="utf-8")
+        opencv_enhancer = (base_dir / "static" / "portafoliosapp" / "DigitalPortrait" / "openCvEnhancer.js").read_text(encoding="utf-8")
 
         self.assertIn("const enableLayoutLogs = false", main_script)
         self.assertIn("IntersectionObserver", portrait_script)
+        self.assertIn("normalizeProgress", portrait_script)
+        self.assertIn("progress >= 0.965 ? 1", portrait_script)
         self.assertIn("profile.fps", portrait_script)
-        self.assertIn("maxNodes: lite ? 720 : 1450", portrait_script)
+        self.assertIn("maxNodes: lite ? 520 : 980", portrait_script)
+        self.assertIn('type === "face-surface"', graph_generator)
         self.assertIn("const buckets = new Map()", graph_generator)
         self.assertIn("bucketSize = connectionDistance", graph_generator)
         self.assertIn("refreshColors", graph_renderer)
+        self.assertIn("faceSurface", graph_renderer)
+        self.assertIn("enhanceEdgesWithOpenCV", image_sampler)
+        self.assertIn("blendEdges", image_sampler)
+        self.assertIn("cv.Canny", opencv_enhancer)
+        self.assertIn("source.delete()", opencv_enhancer)
 
     def test_github_is_visible_and_cv_action_is_removed(self):
         response = self.client.get("/")
@@ -234,3 +250,24 @@ class PortfolioViewTests(TestCase):
         self.assertIn("actions", profile)
         self.assertEqual(profile["actions"][0]["href"], "/bibliografia/")
         self.assertIn("bibliograf", profile["actions"][0]["label"].lower())
+
+    def test_bibliography_portrait_uses_versioned_static_url(self):
+        response = self.client.get("/bibliografia/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("portrait_src", response.context)
+        self.assertIn("/static/portafoliosapp/images/portrait/yo.png?v=", response.context["portrait_src"])
+        self.assertIn("/static/portafoliosapp/DigitalPortrait/DigitalPortrait.css?v=", response.context["bio_css_src"])
+        self.assertIn("/static/portafoliosapp/DigitalPortrait/DigitalPortrait.js?v=", response.context["bio_js_src"])
+        self.assertContains(response, "https://docs.opencv.org/4.12.0/opencv.js")
+        self.assertContains(response, "window.__opencvReady")
+
+    def test_bibliography_is_single_cover_layout(self):
+        response = self.client.get("/bibliografia/")
+        base_dir = Path(__file__).resolve().parents[1]
+        styles = (base_dir / "static" / "portafoliosapp" / "DigitalPortrait" / "DigitalPortrait.css").read_text(encoding="utf-8")
+
+        self.assertContains(response, 'class="bio-summary"')
+        self.assertNotContains(response, 'class="bio-content"')
+        self.assertIn("overflow: hidden", styles[styles.find("body {"):styles.find("body,")])
+        self.assertIn("min-height: 100dvh", styles)

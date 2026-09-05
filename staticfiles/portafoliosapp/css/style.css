@@ -167,9 +167,10 @@ body .allow-select * {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
+  right: auto;
   z-index: 20;
   display: flex;
+  width: min(100%, var(--viewport-width, 100vw));
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
@@ -525,18 +526,21 @@ body.modal-open .bubble.is-floating {
 
 .bubble .label {
   display: block;
+  min-width: 0;
   max-width: calc(var(--bubble-size) * 0.68);
   overflow: hidden;
   color: #fff;
   font-size: clamp(0.58rem, calc(var(--bubble-size) * 0.14), 0.92rem);
   font-weight: 900;
   line-height: 1.05;
+  text-align: center;
   overflow-wrap: anywhere;
   text-wrap: balance;
 }
 
 .bubble .label span {
   display: block;
+  text-align: center;
 }
 
 .bubble .micro {
@@ -746,8 +750,8 @@ body.modal-open .bubble.is-floating {
 .module-parent {
   left: 50%;
   top: 50%;
-  width: clamp(7.6rem, min(10vw, 17vh), 9.8rem) !important;
-  height: clamp(7.6rem, min(10vw, 17vh), 9.8rem) !important;
+  width: var(--module-parent-size, clamp(7.6rem, min(10vw, 17vh), 9.8rem)) !important;
+  height: var(--module-parent-size, clamp(7.6rem, min(10vw, 17vh), 9.8rem)) !important;
   z-index: 4;
 }
 
@@ -2060,50 +2064,6 @@ body.modal-open {
 
 .route-heading i {
   margin-right: 0.28rem;
-
-/* Mobile landscape specific adjustments
-   These rules reduce the title and bubble scale when a phone is in landscape
-   to avoid overflowing or oversized UI elements on short-height viewports. */
-.viewport-phone:not(.viewport-portrait) {
-  --core-size: clamp(9.5rem, 18vw, 11.5rem);
-  --node-size: clamp(6.5rem, 12vw, 8.5rem);
-  --child-size: clamp(7.5rem, 14vw, 10rem);
-  --module-child-size: clamp(5.2rem, 9vw, 6.8rem);
-}
-
-.viewport-phone:not(.viewport-portrait) .topbar {
-  padding: 0.6rem 0.9rem;
-}
-
-.viewport-phone:not(.viewport-portrait) h1 {
-  /* cap the h1 on short-height landscape phones */
-  font-size: clamp(1rem, 3.2vw, 1.6rem);
-  line-height: 1;
-}
-
-.viewport-phone:not(.viewport-portrait) .scene-caption {
-  top: clamp(3.6rem, 6.4vw, 5.6rem);
-  font-size: 0.62rem;
-}
-
-/* Ensure the bubble-scene doesn't overflow the viewport height on small landscape screens */
-.viewport-phone:not(.viewport-portrait) .bubble-scene {
-  height: calc(var(--viewport-height, 100vh) - 48px);
-}
-
-/* Slightly reduce bubble animation/scale to keep layout compact */
-.viewport-phone:not(.viewport-portrait) .bubble.center {
-  transform: scale(0.92);
-}
-.viewport-phone:not(.viewport-portrait) .bubble.primary,
-.viewport-phone:not(.viewport-portrait) .bubble.child {
-  transform: scale(0.9);
-}
-
-/* Make detail panel fit into the reduced height (only when children panel mode active) */
-.viewport-phone:not(.viewport-portrait) body.children-panel .detail-panel {
-  height: calc(var(--viewport-height, 100vh) - 48px);
-}
   color: var(--cyan);
 }
 
@@ -2536,7 +2496,7 @@ html.perf-lite .connector-node {
 
   body.panel-open .bubble-scene,
   body.panel-open .data-lines {
-    height: calc(var(--viewport-height, 100svh) - var(--mobile-panel-height) + 1.5rem);
+    height: calc(var(--viewport-height, 100svh) - var(--mobile-panel-height) - 0.75rem);
   }
 
   /* If both classes are present (panel-open + panel-collapsed), prefer the
@@ -2742,8 +2702,8 @@ html.perf-lite .connector-node {
   .module-parent {
     left: 50%;
     top: 44%;
-    width: 5.35rem !important;
-    height: 5.35rem !important;
+    width: var(--module-parent-size, 5.35rem) !important;
+    height: var(--module-parent-size, 5.35rem) !important;
   }
 
   .viewport-phone.viewport-portrait .module-frame {
@@ -2753,8 +2713,8 @@ html.perf-lite .connector-node {
   }
 
   .viewport-phone.viewport-portrait .module-parent {
-    width: 4.75rem !important;
-    height: 4.75rem !important;
+    width: var(--module-parent-size, 4.75rem) !important;
+    height: var(--module-parent-size, 4.75rem) !important;
     top: 42%;
   }
 
@@ -2796,6 +2756,10 @@ html.perf-lite .connector-node {
     font-size: 0.31rem;
   }
 
+  .viewport-phone.viewport-portrait body.panel-open .bubble.child.module-child .level-tag {
+    display: none;
+  }
+
   .hint {
     display: none;
   }
@@ -2807,8 +2771,17 @@ html.perf-lite .connector-node {
   }
 
   .topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.8rem;
     padding: 1.05rem 1.05rem 0.7rem;
+  }
+
+  .topbar-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    gap: 0.45rem;
   }
 
   .kicker {
@@ -2849,6 +2822,10 @@ html.perf-lite .connector-node {
     font-size: 0.72rem;
   }
 
+  .viewport-phone.viewport-portrait body.panel-open.children-panel .topbar-actions {
+    display: none;
+  }
+
   body.panel-collapsed .topbar {
     padding: 1.05rem 1.05rem 0.7rem;
     background: transparent;
@@ -2861,7 +2838,7 @@ html.perf-lite .connector-node {
     max-width: 11rem;
     font-size: clamp(1.1rem, 7vw, 1.72rem);
     line-height: 0.98;
-    letter-spacing: -0.04em;
+    letter-spacing: 0;
     white-space: normal;
   }
 
@@ -2910,9 +2887,12 @@ html.perf-lite .connector-node {
   }
 
   .contact-link {
+    min-width: 0;
     min-height: 2.35rem;
-    padding: 0 0.75rem;
-    font-size: 0.82rem;
+    padding: 0 0.42rem;
+    font-size: 0.72rem;
+    line-height: 1.05;
+    text-align: center;
   }
 
   .center-name {
@@ -2928,6 +2908,11 @@ html.perf-lite .connector-node {
     max-width: 9rem;
     font-size: 0.64rem;
     line-height: 1.2;
+  }
+
+  .viewport-phone.viewport-portrait .bubble.center .center-title,
+  .viewport-phone.viewport-portrait .bubble.center .node-meta {
+    display: none;
   }
 
   .bubble.center .icon {
@@ -2960,8 +2945,8 @@ html.perf-lite .connector-node {
   }
 
   .module-parent {
-    width: 4.85rem !important;
-    height: 4.85rem !important;
+    width: var(--module-parent-size, 4.85rem) !important;
+    height: var(--module-parent-size, 4.85rem) !important;
   }
 
   .bubble.child.module-child {
@@ -3106,7 +3091,7 @@ html.perf-lite .connector-node {
   }
 
   .topbar {
-    position: relative;
+    position: fixed;
     z-index: 20;
     gap: 0.65rem;
     padding: 0.62rem 1rem 0.3rem;
@@ -3254,8 +3239,8 @@ html.perf-lite .connector-node {
 
   .module-parent {
     top: 58%;
-    width: 4.25rem !important;
-    height: 4.25rem !important;
+    width: var(--module-parent-size, 4.25rem) !important;
+    height: var(--module-parent-size, 4.25rem) !important;
   }
 
   .bubble.child.module-child {

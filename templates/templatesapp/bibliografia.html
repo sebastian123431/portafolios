@@ -1,21 +1,21 @@
-{% load static %}
+﻿{% load static %}
 <!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Bibliografia profesional de {{ name }} con retrato digital interactivo.">
-  <title>Bibliografia - {{ name }}</title>
+  <meta name="description" content="Bibliograf&iacute;a profesional de {{ name }} con retrato digital interactivo.">
+  <title>Bibliograf&iacute;a - {{ name }}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'portafoliosapp/DigitalPortrait/DigitalPortrait.css' %}">
+  <link rel="stylesheet" href="{{ bio_css_src }}">
 </head>
 <body>
   <main class="bio-page">
-    <nav class="bio-nav" aria-label="Navegacion principal">
-      <a href="{% url 'index' %}"><span aria-hidden="true">←</span> Portafolio</a>
-      <span>Bibliografia</span>
+    <nav class="bio-nav" aria-label="Navegaci&oacute;n principal">
+      <a href="{% url 'index' %}"><span aria-hidden="true">&larr;</span> Portafolio</a>
+      <span>Bibliograf&iacute;a</span>
     </nav>
 
     <section class="digitalization" data-digital-portrait data-portrait-src="{{ portrait_src }}">
@@ -24,15 +24,25 @@
           <p class="kicker">Backend / Mobile / IA aplicada</p>
           <h1>{{ name }}</h1>
           <p>
-            {{ role }}, titulado de Ingenieria en Informatica. Construyo sistemas web,
+            {{ role }}, titulado de Ingenier&iacute;a en Inform&aacute;tica. Construyo sistemas web,
             APIs REST y aplicaciones Android offline-first pensadas para procesos reales donde
-            los datos, la continuidad y la adopcion importan.
+            los datos, la continuidad y la adopci&oacute;n importan.
           </p>
-          <div class="tech-tags" aria-label="Stack tecnico">
+          <div class="tech-tags" aria-label="Stack t&eacute;cnico">
             <span>Python</span>
             <span>Django REST</span>
             <span>Kotlin</span>
             <span>SQL Server</span>
+          </div>
+          <div class="bio-summary" aria-label="Perfil profesional">
+            <p>
+              Combino backend, datos, soporte operativo y aplicaciones m&oacute;viles para crear
+              sistemas claros, trazables y resistentes a fallas de conexi&oacute;n.
+            </p>
+            <p>
+              En ControlBins transform&eacute; procesos manuales en trazabilidad digital para
+              producci&oacute;n real, cuidando continuidad, adopci&oacute;n y calidad del dato.
+            </p>
           </div>
         </article>
 
@@ -45,35 +55,32 @@
             <canvas class="analysis-canvas" aria-hidden="true"></canvas>
             <div class="portrait-fallback" role="status">
               <strong>Falta el PNG del retrato</strong>
-              <span>Colocalo en static/portafoliosapp/images/portrait/yo.png</span>
+              <span>Col&oacute;calo en static/portafoliosapp/images/portrait/yo.png</span>
             </div>
           </div>
           <div class="progress-readout" aria-hidden="true">
-            <span>Digitalizacion</span>
+            <span>Digitalizaci&oacute;n</span>
             <span data-progress-label>0%</span>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="bio-content" aria-label="Bibliografia profesional">
-      <div>
-        <p class="kicker">Perfil profesional</p>
-        <h2>Construyo software pensando en el terreno donde se usa.</h2>
-      </div>
-      <p>
-        Mi trabajo combina backend, datos, soporte operativo y aplicaciones moviles. En proyectos
-        como ControlBins, la prioridad fue convertir procesos manuales en trazabilidad digital sin
-        perder continuidad cuando la conexion falla.
-      </p>
-      <p>
-        Esta pagina deja una base visual para representar esa forma de trabajo: una fotografia unica
-        se analiza en canvas, se convierte en nodos conectados y responde de forma precisa al scroll.
-      </p>
-    </section>
   </main>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-  <script type="module" src="{% static 'portafoliosapp/DigitalPortrait/DigitalPortrait.js' %}"></script>
+  <script>
+    window.__opencvReady = new Promise((resolve) => {
+      window.__resolveOpenCVReady = resolve;
+      window.Module = {
+        onRuntimeInitialized() {
+          resolve(window.cv);
+        },
+      };
+      window.setTimeout(() => resolve(null), 3200);
+    });
+  </script>
+  <script async src="https://docs.opencv.org/4.12.0/opencv.js"></script>
+  <script type="module" src="{{ bio_js_src }}"></script>
 </body>
 </html>
