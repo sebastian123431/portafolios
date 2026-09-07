@@ -1,0 +1,13 @@
+.git
+.gitignore
+__pycache__
+*.py[cod]
+*$py.class
+.venv
+venv
+env
+.env
+staticfiles
+.DS_Store
+Thumbs.db
+*.log
