@@ -1,17 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
 .venv/
 venv/
 env/
-__pycache__/
-*.py[cod]
+ENV/
+
+# Variables de entorno y secretos
 .env
 .env.*
 !.env.example
+
+# Base de datos y archivos generados
 *.sqlite3
 *.sqlite3-*
-.ruff_cache/
-.pytest_cache/
+db.sqlite3
+
+# Archivos estaticos generados en produccion
 staticfiles/
 media/
 .tmp/
-# Copia original privada; no forma parte de la aplicación integrada.
+
+# Cache y herramientas
+.ruff_cache/
+.pytest_cache/
+
+# IDEs y editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Logs y temporales
+*.log
+
+# Copia original privada; no forma parte de la aplicacion integrada
 proyectos/agilizacion_contrato-main/

@@ -10,4 +10,6 @@ fuzzywuzzy
 python-Levenshtein
 sendgrid
 python-dotenv
+whitenoise>=6.6.0
+gunicorn>=21.2.0; sys_platform != "win32"
 pywin32; sys_platform == "win32"
