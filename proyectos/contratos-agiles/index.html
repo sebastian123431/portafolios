@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contratos Ágiles · Proyecto de Título Interactivo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --bg-deep: #020706;
+      --bg-card: rgba(4, 15, 12, 0.88);
+      --border-subtle: rgba(57, 255, 20, 0.16);
+      --border-active: rgba(57, 255, 20, 0.65);
+      --border-cyan: rgba(0, 230, 255, 0.28);
+      --green-glow: #39ff14;
+      --cyan-glow: #00e6ff;
+      --orange-warm: #ff8a1c;
+      --text-main: #f5f9f7;
+      --text-muted: rgba(245, 249, 247, 0.68);
+      --font-body: 'Inter', sans-serif;
+      --font-heading: 'Space Grotesk', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg-deep); color: var(--text-main); font-family: var(--font-body); font-size: 15px; line-height: 1.55; padding: clamp(1rem, 2.5vw, 2.2rem); }
+    .ca-container { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
+    .ca-header { border: 1px solid var(--border-subtle); border-radius: 1rem; background: rgba(3, 12, 10, 0.75); padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    .ca-header-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; }
+    .ca-brand { display: flex; align-items: center; gap: 1rem; }
+    .ca-logo { width: 3.2rem; height: 3.2rem; border-radius: 0.8rem; background: rgba(57, 255, 20, 0.18); border: 1px solid var(--border-active); display: grid; place-items: center; font-size: 1.5rem; color: var(--green-glow); }
+    .ca-brand h1 { font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: #fff; }
+    .ca-brand p { font-size: 0.9rem; color: var(--cyan-glow); }
+    .ca-back { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.55rem 1rem; border-radius: 0.65rem; background: rgba(57, 255, 20, 0.08); border: 1px solid var(--border-subtle); color: var(--green-glow); text-decoration: none; font-weight: 600; font-size: 0.85rem; }
+    .ca-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .ca-badge { padding: 0.35rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-family: var(--font-mono); font-weight: 700; text-transform: uppercase; background: rgba(57, 255, 20, 0.12); color: var(--green-glow); border: 1px solid rgba(57, 255, 20, 0.3); }
+    .ca-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
+    .ca-card { border: 1px solid rgba(57, 255, 20, 0.18); border-radius: 0.85rem; background: var(--bg-card); padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+    .ca-card h3 { font-family: var(--font-heading); font-size: 1.1rem; color: #fff; display: flex; align-items: center; gap: 0.5rem; }
+    .ca-card h3 i { color: var(--green-glow); }
+    .ca-card p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+    .ca-list { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.82rem; color: rgba(245, 249, 247, 0.8); }
+    .ca-list li { display: flex; align-items: flex-start; gap: 0.5rem; }
+    .ca-list li i { color: var(--cyan-glow); }
+    .ca-sim-box { border: 1px solid var(--border-active); border-radius: 1rem; background: rgba(3, 15, 12, 0.9); padding: 1.5rem; display: grid; grid-template-columns: 1fr 1.3fr; gap: 1.5rem; }
+    @media (max-width: 850px) { .ca-sim-box { grid-template-columns: 1fr; } }
+    .ca-btn { background: linear-gradient(135deg, #39ff14, #00e6ff); color: #020706; font-weight: 800; border: none; padding: 0.8rem 1.2rem; border-radius: 0.55rem; cursor: pointer; text-transform: uppercase; font-family: var(--font-heading); }
+    .ca-term { background: #010403; border: 1px solid rgba(0, 230, 255, 0.25); border-radius: 0.75rem; padding: 1rem; font-family: var(--font-mono); font-size: 0.8rem; color: var(--green-glow); min-height: 250px; white-space: pre-wrap; }
+    .ca-doc { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.6rem; padding: 1rem; display: none; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="ca-container">
+    <header class="ca-header">
+      <div class="ca-header-top">
+        <div class="ca-brand">
+          <div class="ca-logo"><i class="bi bi-file-earmark-text"></i></div>
+          <div>
+            <h1>Contratos Ágiles</h1>
+            <p>Sistema Web de Automatización Contractual y Gestión Laboral</p>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <a class="ca-back" href="../../"><i class="bi bi-arrow-left"></i> Volver al Portafolio</a>
+        </div>
+      </div>
+      <div class="ca-badges">
+        <span class="ca-badge"><i class="bi bi-mortarboard-fill"></i> Proyecto de Título · INACAP</span>
+        <span class="ca-badge"><i class="bi bi-cpu"></i> Django 5 · Python 3.11</span>
+        <span class="ca-badge"><i class="bi bi-database"></i> Base de Datos Relacional</span>
+        <span class="ca-badge"><i class="bi bi-file-earmark-word"></i> python-docx · Pandas</span>
+      </div>
+      <p style="font-size:0.88rem; color:var(--text-muted); border-top:1px solid rgba(57,255,20,0.12); padding-top:0.75rem;">
+        <strong>Proyecto de Título conducente al título de Ingeniero en Informática (INACAP Sede La Serena):</strong> Diseñado para digitalizar y acelerar la contratación de trabajadores agrícolas temporales en packing y cosechas, reduciendo la confección de contratos de horas a segundos mediante inyección de variables en documentos Word oficiales (<code>python-docx</code>), validación algorítmica de RUT chileno (Módulo 11), control de asistencia y notificaciones vía SendGrid.
+      </p>
+    </header>
+
+    <div class="ca-grid">
+      <div class="ca-card">
+        <h3><i class="bi bi-people"></i> Padrón de Trabajadores</h3>
+        <p>Módulo de registro individual y masivo con validación estricta de identidad.</p>
+        <ul class="ca-list">
+          <li><i class="bi bi-check2"></i> Validación automática de RUT con algoritmo Módulo 11.</li>
+          <li><i class="bi bi-check2"></i> Carga de planillas Excel (.xlsx) mediante Pandas.</li>
+          <li><i class="bi bi-check2"></i> Historial de contratos, cuadrillas y vigencia legal.</li>
+        </ul>
+      </div>
+
+      <div class="ca-card">
+        <h3><i class="bi bi-file-earmark-word"></i> Motor Contractual Word</h3>
+        <p>Plantillas .docx con marcadores dinámicos que se inyectan en lote en memoria.</p>
+        <ul class="ca-list">
+          <li><i class="bi bi-check2"></i> Marcadores {NOMBRE}, {RUT}, {SUELDO}, {FAENA}.</li>
+          <li><i class="bi bi-check2"></i> Generación masiva en lote comprimida en archivo .zip.</li>
+          <li><i class="bi bi-check2"></i> Contratos por faena, a plazo fijo e indefinidos.</li>
+        </ul>
+      </div>
+
+      <div class="ca-card">
+        <h3><i class="bi bi-calendar-check"></i> Asistencia & Correo</h3>
+        <p>Control de faena en terreno y despacho automático de comprobantes.</p>
+        <ul class="ca-list">
+          <li><i class="bi bi-check2"></i> Registro diario de asistencia por cuadrilla.</li>
+          <li><i class="bi bi-check2"></i> Despacho automático de contratos vía API de SendGrid.</li>
+          <li><i class="bi bi-check2"></i> Reportes consolidados y auditoría laboral.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Simulador en Vivo -->
+    <div class="ca-sim-box">
+      <div style="display:flex; flex-direction:column; gap:1rem;">
+        <h3 style="font-family:var(--font-heading); color:#fff; font-size:1.2rem;"><i class="bi bi-play-circle-fill" style="color:var(--green-glow);"></i> Simulador del Motor python-docx</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted);">Elige un trabajador de prueba y ejecuta la generación para ver cómo Django compila el contrato en tiempo real:</p>
+        
+        <div>
+          <label style="font-size:0.8rem; color:var(--cyan-glow); font-weight:700;">TRABAJADOR DEMO:</label>
+          <select id="s-worker" style="width:100%; padding:0.6rem; background:#010403; color:#fff; border:1px solid var(--border-subtle); border-radius:0.5rem; margin-top:0.3rem;">
+            <option value="0">Juan Carlos Pérez · RUT 15.482.910-K · Cosechero</option>
+            <option value="1">Camila Andrea Soto · RUT 18.234.567-8 · Supervisora Packing</option>
+            <option value="2">Matías Ignacio Rojas · RUT 19.876.543-2 · Operador Maquinaria</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size:0.8rem; color:var(--cyan-glow); font-weight:700;">TIPO DE CONTRATO:</label>
+          <select id="s-type" style="width:100%; padding:0.6rem; background:#010403; color:#fff; border:1px solid var(--border-subtle); border-radius:0.5rem; margin-top:0.3rem;">
+            <option value="Temporada Agrícola">Contrato de Trabajo por Obra o Faena Agrícola</option>
+            <option value="Plazo Fijo">Contrato de Trabajo a Plazo Fijo</option>
+            <option value="Indefinido">Contrato de Trabajo Indefinido</option>
+          </select>
+        </div>
+
+        <button id="s-btn" class="ca-btn" type="button"><i class="bi bi-lightning-charge-fill"></i> Generar Contrato Word</button>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:0.5rem;">
+        <div id="s-term" class="ca-term"># Presiona 'Generar Contrato Word' para ejecutar la simulación en tiempo real...</div>
+        <div id="s-doc" class="ca-doc">
+          <h4 id="d-title" style="color:#fff; font-family:var(--font-heading); text-align:center; border-bottom:1px solid rgba(57,255,20,0.3); padding-bottom:0.4rem;"></h4>
+          <p id="d-body" style="font-size:0.82rem; color:var(--text-muted); line-height:1.6;"></p>
+          <div style="font-size:0.75rem; color:var(--green-glow); text-align:right; font-family:var(--font-mono);">✓ Documento Word (.docx) compilado listo para firma</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const WORKERS = [
+      { name: 'JUAN CARLOS PÉREZ VALDÉS', rut: '15.482.910-K', cargo: 'Cosechero de Temporada', sueldo: '$620.000 CLP', faena: 'Fundo San Isidro, Cuartel 4' },
+      { name: 'CAMILA ANDREA SOTO VALENZUELA', rut: '18.234.567-8', cargo: 'Supervisora de Packing', sueldo: '$780.000 CLP', faena: 'Planta de Packing Central' },
+      { name: 'MATÍAS IGNACIO ROJAS PINTO', rut: '19.876.543-2', cargo: 'Operador de Maquinaria', sueldo: '$710.000 CLP', faena: 'Área de Transporte y Bins' }
+    ];
+
+    document.getElementById('s-btn').addEventListener('click', () => {
+      const w = WORKERS[document.getElementById('s-worker').value];
+      const t = document.getElementById('s-type').value;
+      const term = document.getElementById('s-term');
+      const doc = document.getElementById('s-doc');
+      doc.style.display = 'none';
+
+      term.innerHTML = '[0.00s] Iniciando motor Django :: python-docx\n';
+      setTimeout(() => { term.innerHTML += '[0.22s] Validando RUT ' + w.rut + ' con algoritmo Módulo 11: OK\n'; }, 250);
+      setTimeout(() => { term.innerHTML += '[0.51s] Cargando plantilla base .docx y leyendo tags XML...\n'; }, 500);
+      setTimeout(() => { term.innerHTML += '[0.84s] Inyectando campos dinámicos: ' + w.name + ' (' + w.cargo + ')\n'; }, 850);
+      setTimeout(() => {
+        term.innerHTML += '[1.20s] ÉXITO: Archivo Word .docx generado y registrado en base de datos.\n';
+        document.getElementById('d-title').textContent = 'CONTRATO DE TRABAJO - ' + t.toUpperCase();
+        document.getElementById('d-body').innerHTML = 'En Vicuña, entre la empresa y don(ña) <strong>' + w.name + '</strong>, RUT <strong>' + w.rut + '</strong>, se conviene el presente contrato en calidad de <strong>' + w.cargo + '</strong> en <strong>' + w.faena + '</strong>, con una remuneración mensual de <strong>' + w.sueldo + '</strong>.';
+        doc.style.display = 'flex';
+      }, 1200);
+    });
+  </script>
+</body>
+</html>
