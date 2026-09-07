@@ -1,0 +1,87 @@
+{% extends 'contratos_agiles/base.html' %}
+{% load static %}
+
+{% block title %}Ingreso | Contratos Agiles{% endblock %}
+{% block body_class %}login-page{% endblock %}
+
+{% block shell %}
+<section class="auth-card">
+    <div class="auth-logo">
+        <img src="{% static 'contratos_agiles/images/logocampana.png' %}" alt="Fundo La Campana">
+    </div>
+    <div class="auth-copy">
+        <h1>Contratos Agiles</h1>
+        <p>Gestiona trabajadores, asistencia, contratos y reportes desde un solo panel.</p>
+        {% if demo_access %}
+        <div class="demo-access" aria-label="Credenciales de demostracion">
+            <div>
+                <span>Acceso demo</span>
+                <strong>Usuario: {{ demo_access.username }}</strong>
+                <strong>Clave: {{ demo_access.password }}</strong>
+            </div>
+            <button type="button" class="demo-fill" onclick="fillDemoAccess()">Usar acceso</button>
+        </div>
+        {% endif %}
+        <form id="loginForm" class="grid" style="margin-top: 22px;">
+            {% csrf_token %}
+            <div class="field">
+                <label for="username">Usuario</label>
+                <input type="text" id="username" name="username" autocomplete="username" required>
+            </div>
+            <div class="field">
+                <label for="password">Contrasena</label>
+                <input type="password" id="password" name="password" autocomplete="current-password" required>
+            </div>
+            <div id="error-message" class="alert error" style="display: none;"></div>
+            <button type="button" class="btn accent" onclick="validateForm()">Iniciar sesion</button>
+            <a class="btn secondary" href="{% url 'contratos_agiles:register' %}">Crear usuario</a>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function fillDemoAccess() {
+        document.getElementById("username").value = "{{ demo_access.username|default:'' }}";
+        document.getElementById("password").value = "{{ demo_access.password|default:'' }}";
+        document.getElementById("username").focus();
+    }
+
+    function validateForm() {
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+        const errorMessage = document.getElementById("error-message");
+
+        if (!username || !password) {
+            errorMessage.style.display = "block";
+            errorMessage.innerText = "Completa usuario y contrasena.";
+            return;
+        }
+
+        const data = new FormData();
+        data.append("username", username);
+        data.append("password", password);
+        data.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+
+        fetch("{% url 'contratos_agiles:login' %}", {
+            method: "POST",
+            headers: {"X-Requested-With": "XMLHttpRequest"},
+            body: data
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (response.status === "success") {
+                    window.location.href = response.redirect_url;
+                    return;
+                }
+                errorMessage.style.display = "block";
+                errorMessage.innerText = response.message || "No se pudo iniciar sesion.";
+            })
+            .catch(() => {
+                errorMessage.style.display = "block";
+                errorMessage.innerText = "Ocurrio un error. Intentalo nuevamente.";
+            });
+    }
+</script>
+{% endblock %}

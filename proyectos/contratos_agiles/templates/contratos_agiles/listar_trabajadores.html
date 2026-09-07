@@ -1,0 +1,51 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Nomina completa | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Nomina completa</h1>
+        <p>Detalle extendido de trabajadores y cargos registrados.</p>
+    </div>
+    <a class="btn secondary" href="{% url 'contratos_agiles:menu_trabajadores' %}">Volver</a>
+</header>
+
+<section class="card">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Trabajador</th>
+                    <th>RUT</th>
+                    <th>Contacto</th>
+                    <th>Prevision</th>
+                    <th>Cargos</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trabajador in trabajadores %}
+                <tr>
+                    <td><strong>{{ trabajador.nombre }} {{ trabajador.apellido }}</strong><br><small>{{ trabajador.direccion }}</small></td>
+                    <td>{{ trabajador.rut }}</td>
+                    <td>{{ trabajador.telefono }}<br><small>{{ trabajador.correo }}</small></td>
+                    <td>{{ trabajador.afp }}<br><small>{{ trabajador.previcion_salud }}</small></td>
+                    <td>
+                        {% for cargo in trabajador.cargo_set.all %}
+                            <div><strong>{{ cargo.labor }}</strong> <small>{{ cargo.vigente }}</small></div>
+                            <small>{{ cargo.fecha_ingreso }} | ${{ cargo.sueldo }}</small>
+                        {% empty %}
+                            <span class="empty-state">Sin cargo</span>
+                        {% endfor %}
+                    </td>
+                    <td><a class="btn secondary" href="{% url 'contratos_agiles:perfil_trabajador' trabajador.id %}">Perfil</a></td>
+                </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="empty-state">No hay trabajadores registrados.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

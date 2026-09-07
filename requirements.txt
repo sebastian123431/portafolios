@@ -1,0 +1,13 @@
+Django==5.2.15
+cryptography
+Pillow
+numpy
+pandas>=2.1
+openpyxl
+opencv-contrib-python>=4.10,<5
+python-docx
+fuzzywuzzy
+python-Levenshtein
+sendgrid
+python-dotenv
+pywin32; sys_platform == "win32"

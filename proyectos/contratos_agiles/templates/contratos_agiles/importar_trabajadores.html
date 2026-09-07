@@ -1,0 +1,78 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Importar trabajadores | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Importar trabajadores</h1>
+        <p>Carga un archivo Excel o CSV, revisa los datos y confirma la importacion.</p>
+    </div>
+    <a class="btn secondary" href="{% url 'contratos_agiles:menu_trabajadores' %}">Volver</a>
+</header>
+
+<section class="card form-card" id="importForm" {% if df %}style="display: none;"{% endif %}>
+    <form class="card-body" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="field">
+            <label for="{{ form.file.id_for_label }}">Archivo Excel o CSV</label>
+            {{ form.file }}
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn accent">Subir archivo</button>
+        </div>
+    </form>
+</section>
+
+{% if df %}
+<section class="card" style="margin-top: 18px;">
+    <div class="card-header">
+        <h2>Vista previa</h2>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>RUT</th>
+                        <th>Direccion</th>
+                        <th>Telefono</th>
+                        <th>Cargo</th>
+                        <th>AFP</th>
+                        <th>Estado civil</th>
+                        <th>Nacimiento</th>
+                        <th>Salud</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in df %}
+                        <tr>
+                            <td>{{ row.nombre }}</td>
+                            <td>{{ row.apellido }}</td>
+                            <td>{{ row.rut }}</td>
+                            <td>{{ row.direccion }}</td>
+                            <td>{{ row.telefono }}</td>
+                            <td>{{ row.cargo }}</td>
+                            <td>{{ row.afp }}</td>
+                            <td>{{ row.estado_civil }}</td>
+                            <td>{{ row.fecha_nacimiento }}</td>
+                            <td>{{ row.previcion_salud }}</td>
+                            <td><button type="submit" name="eliminar" value="{{ forloop.counter0 }}" class="btn danger">Eliminar</button></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-body form-actions">
+            <button type="submit" name="guardar" class="btn success">Guardar trabajadores</button>
+            <button type="submit" name="borrar_todo" class="btn danger">Borrar todo</button>
+            <button type="submit" name="subir_nuevo" class="btn secondary">Subir nuevo</button>
+        </div>
+    </form>
+</section>
+{% endif %}
+{% endblock %}

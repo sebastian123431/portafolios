@@ -1,0 +1,60 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Contratos masivos | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Generar contratos masivos</h1>
+        <p>Selecciona una plantilla, fechas y trabajadores para descargar un ZIP con PDFs.</p>
+    </div>
+    <a class="btn secondary" href="{% url 'contratos_agiles:menu_contratos' %}">Volver</a>
+</header>
+
+{% if error_message %}
+    <div class="alert error">{{ error_message }}</div>
+{% endif %}
+
+<section class="card form-card">
+    <form class="card-body" method="post" action="{% url 'contratos_agiles:generar_contratos_masivos' %}">
+        {% csrf_token %}
+        <div class="form-grid">
+            <div class="field full">
+                <label for="contrato">Contrato</label>
+                <select id="contrato" name="contrato" required>
+                    <option value="">Seleccionar contrato</option>
+                    {% for contrato in contratos %}
+                        <option value="{{ contrato.id }}">{{ contrato.descripcion }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label for="fecha_inicio">Fecha de inicio</label>
+                <input type="date" id="fecha_inicio" name="fecha_inicio" required>
+            </div>
+            <div class="field">
+                <label for="fecha_termino">Fecha de termino</label>
+                <input type="date" id="fecha_termino" name="fecha_termino" required>
+            </div>
+            <div class="field full">
+                <label>Trabajadores</label>
+                <div class="card-body" style="max-height: 260px; overflow: auto; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px;">
+                    <div class="grid">
+                        {% for trabajador in trabajadores %}
+                            <label class="list-row" for="trabajador_{{ trabajador.id }}">
+                                <span>{{ trabajador.nombre }} {{ trabajador.apellido }}</span>
+                                <input type="checkbox" id="trabajador_{{ trabajador.id }}" name="trabajadores" value="{{ trabajador.id }}" style="width: auto; min-height: auto;">
+                            </label>
+                        {% empty %}
+                            <p class="empty-state">No hay trabajadores registrados.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn accent">Generar contratos</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

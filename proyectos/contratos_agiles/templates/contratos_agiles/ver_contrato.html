@@ -1,0 +1,23 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Visualizador de contrato | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>{{ nombre }}</h1>
+        <p>{{ descripcion }}</p>
+    </div>
+    <a class="btn secondary" href="{{ contrato_url }}" download>Descargar</a>
+</header>
+
+<section class="preview-document">
+    <iframe
+        src="https://view.officeapps.live.com/op/embed.aspx?src={{ contrato_url|urlencode }}"
+        width="100%"
+        height="720"
+        title="Contrato">
+    </iframe>
+    <p class="muted">Si el visor no carga, descarga el archivo desde el boton superior.</p>
+</section>
+{% endblock %}

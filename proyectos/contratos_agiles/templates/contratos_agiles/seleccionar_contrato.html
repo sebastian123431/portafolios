@@ -1,0 +1,54 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Generar contrato | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Generar contrato</h1>
+        <p>Selecciona trabajador, plantilla y fechas para crear el contrato final.</p>
+    </div>
+    <a class="btn secondary" href="{% url 'contratos_agiles:menu_contratos' %}">Volver</a>
+</header>
+
+{% if error_message %}
+    <div class="alert error">{{ error_message }}</div>
+{% endif %}
+
+<section class="card form-card">
+    <form class="card-body" action="{% url 'contratos_agiles:generar_contrato' %}" method="post">
+        {% csrf_token %}
+        <div class="form-grid">
+            <div class="field">
+                <label for="trabajador">Trabajador</label>
+                <select name="trabajador" id="trabajador" required>
+                    <option value="">Seleccionar trabajador</option>
+                    {% for trabajador in trabajadores %}
+                        <option value="{{ trabajador.id }}">{{ trabajador.nombre }} {{ trabajador.apellido }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label for="contrato">Contrato</label>
+                <select name="contrato" id="contrato" required>
+                    <option value="">Seleccionar contrato</option>
+                    {% for contrato in contratos %}
+                        <option value="{{ contrato.id }}">{{ contrato.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label for="fecha_inicio">Fecha de inicio</label>
+                <input type="date" id="fecha_inicio" name="fecha_inicio" required>
+            </div>
+            <div class="field">
+                <label for="fecha_termino">Fecha de termino</label>
+                <input type="date" id="fecha_termino" name="fecha_termino" required>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn accent">Generar contrato</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

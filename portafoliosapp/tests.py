@@ -1,7 +1,9 @@
 import json
 from pathlib import Path
 
+from django.conf import settings
 from django.test import TestCase
+from django.urls import reverse
 
 
 class PortfolioViewTests(TestCase):
@@ -25,10 +27,12 @@ class PortfolioViewTests(TestCase):
 
     def test_positioning_and_main_actions_are_not_duplicated(self):
         response = self.client.get("/")
+        bubbles = json.loads(response.context["bubbles_json"])
+        profile = next(node for node in bubbles if node["id"] == "profile")
 
         self.assertContains(response, "Desarrollador Backend Python/Django y Full Stack")
         self.assertContains(response, "Sistemas web, APIs REST y aplicaciones Android offline-first.")
-        self.assertContains(response, "Construyo sistemas que no pierden datos")
+        self.assertContains(response, profile["tagline"])
         self.assertContains(response, "Python · Django · Kotlin · SQL Server")
         self.assertNotContains(response, 'class="quick-actions"')
         self.assertNotContains(response, "Ver proyectos")
@@ -42,19 +46,119 @@ class PortfolioViewTests(TestCase):
         case = projects["children"][0]
 
         self.assertEqual(case["label"], "ControlBins")
-        self.assertEqual(case["badge"], "Caso principal")
-        self.assertIn("adoptar por los equipos operativos", case["content"])
-        self.assertIn("100% de trazabilidad digitalizada", case["sections"][3]["items"][0])
+        self.assertEqual(case["badge"], "Proyecto empresarial")
+        self.assertIn("panel web", case["content"])
+        self.assertIn("panel web de consulta", case["sections"][3]["items"][0])
         self.assertIn("Offline-first", case["tags"])
         self.assertEqual(
             case["architecture"],
             ["Android Kotlin", "SQLite offline", "Django REST API", "SQL Server", "Reportes operativos"],
         )
         self.assertEqual(case["gallery"], [])
+        self.assertEqual(case["actions"][0]["type"], "case-study")
+        self.assertEqual(case["actions"][0]["label"], "Explorar funcionamiento")
+        self.assertIn("case_study", case)
+        self.assertEqual(len(case["case_study"]["screens"]), 13)
+        self.assertIn("/static/portafoliosapp/projects/controlbins/views/dashboard.png?v=", case["case_study"]["screens"][1]["src"])
+        self.assertEqual(case["case_study"]["screens"][2]["next"], "dispatch-detail")
+        self.assertEqual(case["case_study"]["screens"][8]["next"], "dispatch-history-detail")
         self.assertIn("simulation", case)
         self.assertEqual(case["simulation"]["steps"][2]["label"], "Guardado sin conexión")
         self.assertIn("SQLite/Room", case["simulation"]["steps"][2]["detail"])
         self.assertEqual(case["simulation"]["title"], "Flujo real de sincronización")
+
+    def test_controlbins_case_study_assets_and_modal_runtime_exist(self):
+        response = self.client.get("/")
+        base_dir = Path(__file__).resolve().parents[1]
+        script = (base_dir / "static" / "portafoliosapp" / "js" / "main.js").read_text(encoding="utf-8")
+        styles = (base_dir / "static" / "portafoliosapp" / "css" / "style.css").read_text(encoding="utf-8")
+        expected_assets = [
+            "login.png",
+            "dashboard.png",
+            "dispatch-report.png",
+            "dispatch-detail.png",
+            "bins-report.png",
+            "seed-count.png",
+            "timeline.png",
+            "bins-history.png",
+            "dispatch-history.png",
+            "dispatch-history-detail.png",
+            "seed-history.png",
+            "field-history.png",
+            "not-found.png",
+        ]
+
+        for filename in expected_assets:
+            self.assertTrue((base_dir / "static" / "portafoliosapp" / "projects" / "controlbins" / "views" / filename).exists())
+
+        self.assertContains(response, "Explorar funcionamiento")
+        self.assertIn("data-controlbins-study", script)
+        self.assertIn("openControlBinsCaseStudy", script)
+        self.assertIn("renderControlBinsDashboard", script)
+        self.assertIn("cb-flow-runner", script)
+        self.assertIn(".cb-case-study", styles)
+        self.assertIn(".cb-dashboard", styles)
+        self.assertIn(".project-live-modal.is-case-study", styles)
+        self.assertNotIn("codigo fuente", script.lower())
+
+    def test_controlbins_study_view_and_iframe_route(self):
+        response = self.client.get(reverse("controlbins_study"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "ControlBins")
+        self.assertContains(response, "Flujo Funcional del Ecosistema")
+        self.assertContains(response, "Captura en Terreno")
+        self.assertContains(response, "Dashboard Web")
+        self.assertContains(response, "Reporte de despachos")
+        self.assertContains(response, "Detalle de despacho")
+        self.assertContains(response, "Reporte de Bins")
+        self.assertContains(response, "Conteo de semillas")
+        self.assertContains(response, "Color por Cuartel")
+        self.assertContains(response, "Línea de tiempo")
+        self.assertContains(response, "Histórico de Bins")
+        self.assertContains(response, "Histórico de Despachos")
+        self.assertContains(response, "Histórico de Semillas")
+        self.assertEqual(len(response.context["screens"]), 13)
+
+        home_response = self.client.get("/")
+        bubbles = json.loads(home_response.context["bubbles_json"])
+        projects = next(node for node in bubbles if node["id"] == "projects")
+        controlbins = projects["children"][0]
+        self.assertEqual(controlbins["actions"][0]["href"], reverse("controlbins_study"))
+
+    def test_contratos_agiles_is_embedded_as_degree_project(self):
+        response = self.client.get("/")
+        bubbles = json.loads(response.context["bubbles_json"])
+        projects = next(node for node in bubbles if node["id"] == "projects")
+        case = next(child for child in projects["children"] if child.get("id") == "contratos-agiles")
+        action = case["actions"][0]
+
+        self.assertEqual(case["label"], "Contratos Ágiles")
+        self.assertEqual(case["badge"], "Proyecto de Título")
+        self.assertIn("Proyecto de Título", case["minuta"]["title"])
+        self.assertIn("Django", case["architecture"])
+        self.assertEqual(action["type"], "live-demo")
+        self.assertEqual(action["href"], reverse("contratos_agiles:login"))
+        self.assertNotIn("localhost", action["href"])
+        self.assertEqual(settings.X_FRAME_OPTIONS, "SAMEORIGIN")
+
+    def test_project_live_viewer_uses_accessible_same_page_iframe(self):
+        response = self.client.get("/")
+        base_dir = Path(__file__).resolve().parents[1]
+        script = (base_dir / "static" / "portafoliosapp" / "js" / "main.js").read_text(encoding="utf-8")
+        styles = (base_dir / "static" / "portafoliosapp" / "css" / "style.css").read_text(encoding="utf-8")
+
+        self.assertContains(response, 'id="project-live-modal"')
+        self.assertContains(response, 'role="dialog"')
+        self.assertContains(response, 'aria-modal="true"')
+        self.assertContains(response, 'id="project-live-frame"')
+        self.assertContains(response, 'src="about:blank"')
+        self.assertIn("data-project-live", script)
+        self.assertIn("openProjectLiveViewer", script)
+        self.assertIn("closeProjectLiveViewer", script)
+        self.assertIn('projectLiveFrame.src = "about:blank"', script)
+        self.assertIn("project-live-open", script)
+        self.assertIn(".project-live-modal", styles)
+        self.assertIn("@media (max-width: 700px)", styles)
 
     def test_experience_and_skills_are_grouped(self):
         response = self.client.get("/")
@@ -152,6 +256,27 @@ class PortfolioViewTests(TestCase):
         self.assertIn("landscape ? Math.min(rect.width * 0.35, 285)", script)
         self.assertNotIn("-webkit-line-clamp: 2;\n}", styles[styles.find(".bubble .label"):styles.find(".bubble .micro")])
 
+    def test_phone_landscape_reflows_after_rotation(self):
+        response = self.client.get("/")
+        base_dir = Path(__file__).resolve().parents[1]
+        script = (base_dir / "static" / "portafoliosapp" / "js" / "main.js").read_text(encoding="utf-8")
+        styles = (base_dir / "static" / "portafoliosapp" / "css" / "style.css").read_text(encoding="utf-8")
+
+        self.assertIn("function isLandscapeHandset(viewport)", script)
+        self.assertIn("viewport.height <= 560", script)
+        self.assertIn('window.addEventListener("orientationchange", stabilizeAfterOrientationChange)', script)
+        self.assertIn("grid-template-columns: minmax(10rem, 1.05fr)", styles)
+        self.assertIn("grid-template-columns: minmax(9.5rem, 27vw) minmax(0, 1fr)", styles)
+        self.assertIn("height: calc(max(var(--viewport-height, 100svh), 22rem) - 4.7rem) !important", styles)
+        self.assertIn("body.home-level .intro-summary", styles)
+        self.assertIn("grid-template-columns: 1.65rem minmax(0, 1fr)", styles)
+        self.assertIn("-webkit-line-clamp: 3", styles[styles.rfind("body.home-level .bubble.primary .micro"):])
+        self.assertIn("visibility: visible", styles[styles.rfind("body.home-level .bubble.primary .label"):])
+        self.assertIn("top: 4.05rem", styles)
+        self.assertIn("padding: clamp(0.6rem, 1.5vh, 0.9rem) 0.72rem", styles)
+        self.assertIn("/static/portafoliosapp/css/style.css?v=", response.context["site_css_src"])
+        self.assertIn("/static/portafoliosapp/js/main.js?v=", response.context["site_js_src"])
+
     def test_portfolio_uses_custom_green_alien_tech_theme(self):
         base_dir = Path(__file__).resolve().parents[1]
         script = (base_dir / "static" / "portafoliosapp" / "js" / "main.js").read_text(encoding="utf-8")
@@ -180,6 +305,9 @@ class PortfolioViewTests(TestCase):
         self.assertIn("display: none", module_block)
         self.assertIn("clamp(4.8rem", styles)
         self.assertIn("clamp(4.2rem", styles)
+        self.assertIn('document.body.classList.toggle("sparse-module", children.length <= 2)', script)
+        self.assertIn("body.sparse-module .bubble.child.module-child .icon", styles)
+        self.assertIn("overflow-wrap: normal", styles)
 
     def test_compact_nodes_do_not_truncate_labels_with_ellipsis(self):
         base_dir = Path(__file__).resolve().parents[1]
@@ -220,7 +348,9 @@ class PortfolioViewTests(TestCase):
         self.assertIn("normalizeProgress", portrait_script)
         self.assertIn("progress >= 0.965 ? 1", portrait_script)
         self.assertIn("profile.fps", portrait_script)
-        self.assertIn("maxNodes: lite ? 520 : 980", portrait_script)
+        self.assertIn("maxNodes: mobile ? (constrained ? 190 : 280)", portrait_script)
+        self.assertIn("useOpenCV: !mobile && !reducedData", portrait_script)
+        self.assertIn('options.useOpenCV === false', image_sampler)
         self.assertIn('type === "face-surface"', graph_generator)
         self.assertIn("const buckets = new Map()", graph_generator)
         self.assertIn("bucketSize = connectionDistance", graph_generator)
@@ -251,6 +381,26 @@ class PortfolioViewTests(TestCase):
         self.assertEqual(profile["actions"][0]["href"], "/bibliografia/")
         self.assertIn("bibliograf", profile["actions"][0]["label"].lower())
 
+    def test_home_uses_organized_center_profile(self):
+        response = self.client.get("/")
+        bubbles = json.loads(response.context["bubbles_json"])
+        profile = next(node for node in bubbles if node["id"] == "profile")
+        base_dir = Path(__file__).resolve().parents[1]
+        script = (base_dir / "static" / "portafoliosapp" / "js" / "main.js").read_text(encoding="utf-8")
+        styles = (base_dir / "static" / "portafoliosapp" / "css" / "style.css").read_text(encoding="utf-8")
+
+        self.assertNotIn("image", profile)
+        self.assertEqual(profile["name"], "Sebastián Espíndola")
+        self.assertIn("Python", profile["stats"])
+        self.assertIn("portfolio-map-grid", script)
+        self.assertIn('document.body.classList.add("home-level")', script)
+        self.assertIn("body.home-level .bubble.center", styles)
+        self.assertIn(".center-name", styles)
+        self.assertIn(".center-title", styles)
+        self.assertIn(".center-subtitle", styles)
+        self.assertIn(".center-tagline", styles)
+        self.assertIn(".stat-chip", styles)
+
     def test_bibliography_portrait_uses_versioned_static_url(self):
         response = self.client.get("/bibliografia/")
 
@@ -261,6 +411,12 @@ class PortfolioViewTests(TestCase):
         self.assertIn("/static/portafoliosapp/DigitalPortrait/DigitalPortrait.js?v=", response.context["bio_js_src"])
         self.assertContains(response, "https://docs.opencv.org/4.12.0/opencv.js")
         self.assertContains(response, "window.__opencvReady")
+        self.assertContains(response, "data-protected-portrait")
+        self.assertContains(response, 'class="portrait-guard"')
+        self.assertContains(response, 'draggable="false"')
+        self.assertContains(response, "Disponible para nuevos desafíos")
+        self.assertContains(response, "https://github.com/sebastian123431")
+        self.assertContains(response, "https://linkedin.com/in/sebastian-espindola-46a521334")
 
     def test_bibliography_is_single_cover_layout(self):
         response = self.client.get("/bibliografia/")
@@ -271,3 +427,16 @@ class PortfolioViewTests(TestCase):
         self.assertNotContains(response, 'class="bio-content"')
         self.assertIn("overflow: hidden", styles[styles.find("body {"):styles.find("body,")])
         self.assertIn("min-height: 100dvh", styles)
+        self.assertIn("--bio-text: #f8f1ed", styles)
+        self.assertIn("--brand-scarlet: #d72638", styles)
+        self.assertIn("--brand-silver: #c7cdd3", styles)
+        self.assertIn(".bio-proof", styles)
+        self.assertIn("overflow-y: auto", styles)
+        self.assertIn("inset: -1.5% -3% 0 1%", styles)
+        self.assertIn("-webkit-touch-callout: none", styles)
+        self.assertIn("touch-action: pan-y", styles)
+
+        portrait_script = (base_dir / "static" / "portafoliosapp" / "DigitalPortrait" / "DigitalPortrait.js").read_text(encoding="utf-8")
+        self.assertIn("function protectPortrait(root)", portrait_script)
+        self.assertIn('protectedArea.addEventListener("contextmenu"', portrait_script)
+        self.assertIn('protectedArea.addEventListener("dragstart"', portrait_script)

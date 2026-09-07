@@ -1,5 +1,11 @@
-import unittest
+import os
 import sys
+import unittest
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "portafolios.settings")
+import django
+django.setup()
+
 from portafoliosapp.tests import PortfolioViewTests
 
 suite = unittest.defaultTestLoader.loadTestsFromTestCase(PortfolioViewTests)

@@ -1,0 +1,120 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Registrar trabajador | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Registrar trabajador</h1>
+        <p>Completa la ficha personal para contratos, asistencia y correos.</p>
+    </div>
+    <a class="btn secondary" href="{% url 'contratos_agiles:menu_trabajadores' %}">Volver</a>
+</header>
+
+<section class="card form-card">
+    <form class="card-body" method="POST" action="{% url 'contratos_agiles:guardar_trabajador' %}" enctype="multipart/form-data" onsubmit="return validateForm()">
+        {% csrf_token %}
+        <div class="form-grid">
+            <div class="field">
+                <label for="nombre">Nombre</label>
+                <input type="text" id="nombre" name="nombre" required>
+            </div>
+            <div class="field">
+                <label for="apellido">Apellido</label>
+                <input type="text" id="apellido" name="apellido" required>
+            </div>
+            <div class="field">
+                <label for="rut">RUT</label>
+                <input type="text" id="rut" name="rut" required>
+                <small id="rut-help" class="muted">Ejemplo: 12.345.678-9</small>
+            </div>
+            <div class="field">
+                <label for="telefono">Telefono</label>
+                <input type="text" id="telefono" name="telefono" required>
+            </div>
+            <div class="field full">
+                <label for="direccion">Direccion</label>
+                <input type="text" id="direccion" name="direccion" required>
+            </div>
+            <div class="field">
+                <label for="afp">AFP</label>
+                <input type="text" id="afp" name="afp" required>
+            </div>
+            <div class="field">
+                <label for="estado_civil">Estado civil</label>
+                <input type="text" id="estado_civil" name="estado_civil" required>
+            </div>
+            <div class="field">
+                <label for="prevision_salud">Prevision de salud</label>
+                <input type="text" id="prevision_salud" name="prevision_salud" required>
+            </div>
+            <div class="field">
+                <label for="fecha_nacimiento">Fecha de nacimiento</label>
+                <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" required>
+            </div>
+            <div class="field">
+                <label for="correo">Correo electronico</label>
+                <input type="email" id="correo" name="correo" required>
+            </div>
+            <div class="field">
+                <label for="foto">Foto de perfil</label>
+                <input type="file" id="foto" name="foto" accept="image/*">
+            </div>
+        </div>
+        <div class="form-actions">
+            <a class="btn secondary" href="{% url 'contratos_agiles:menu_trabajadores' %}">Cancelar</a>
+            <button type="submit" class="btn accent">Guardar trabajador</button>
+        </div>
+    </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function validateRUT(rut) {
+        rut = rut.replace(/[.\-\s]/g, "");
+        if (rut.length < 2) return false;
+        const cuerpo = rut.slice(0, -1);
+        const dv = rut.slice(-1).toUpperCase();
+        if (!/^[0-9]+$/.test(cuerpo)) return false;
+        let suma = 0;
+        let multiplo = 2;
+        for (let i = cuerpo.length - 1; i >= 0; i--) {
+            suma += parseInt(cuerpo.charAt(i), 10) * multiplo;
+            multiplo = multiplo === 7 ? 2 : multiplo + 1;
+        }
+        const resto = suma % 11;
+        const dvCalculado = resto === 0 ? "0" : resto === 1 ? "K" : (11 - resto).toString();
+        return dv === dvCalculado;
+    }
+
+    function formatRUT(rut) {
+        rut = rut.replace(/[^0-9kK]/g, "").toUpperCase();
+        if (rut.length < 2) return rut;
+        let cuerpo = rut.slice(0, -1);
+        const dv = rut.slice(-1);
+        cuerpo = cuerpo.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+        return `${cuerpo}-${dv}`;
+    }
+
+    const rutInput = document.getElementById("rut");
+    const rutHelp = document.getElementById("rut-help");
+    rutInput.addEventListener("input", () => {
+        const raw = rutInput.value.replace(/[.\-]/g, "");
+        rutInput.value = formatRUT(raw);
+        if (!raw) return;
+        const valid = validateRUT(raw);
+        rutHelp.textContent = valid ? "RUT valido" : "RUT invalido";
+        rutHelp.style.color = valid ? "var(--success)" : "var(--danger)";
+    });
+
+    function validateForm() {
+        const raw = rutInput.value.replace(/[.\-]/g, "");
+        if (!validateRUT(raw)) {
+            alert("Ingresa un RUT valido.");
+            return false;
+        }
+        return true;
+    }
+</script>
+{% endblock %}

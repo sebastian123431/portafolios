@@ -1,0 +1,55 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Mapeo de columnas | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Mapeo de columnas</h1>
+        <p>Relaciona las columnas del archivo con los campos del sistema antes de importar.</p>
+    </div>
+    <a class="btn secondary" href="{% url 'contratos_agiles:importar_trabajadores' %}">Volver</a>
+</header>
+
+<section class="card">
+    <form method="post">
+        {% csrf_token %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Columna del archivo</th>
+                        <th>Campo del sistema</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for column in columns %}
+                    <tr>
+                        <td><strong>{{ column }}</strong></td>
+                        <td>
+                            <select name="{{ column }}">
+                                <option value="">No importar</option>
+                                <option value="nombre" {% if column_mapping.nombre == column %}selected{% endif %}>Nombre</option>
+                                <option value="apellido" {% if column_mapping.apellido == column %}selected{% endif %}>Apellido</option>
+                                <option value="rut" {% if column_mapping.rut == column %}selected{% endif %}>RUT</option>
+                                <option value="direccion" {% if column_mapping.direccion == column %}selected{% endif %}>Direccion</option>
+                                <option value="telefono" {% if column_mapping.telefono == column %}selected{% endif %}>Telefono</option>
+                                <option value="cargo" {% if column_mapping.cargo == column %}selected{% endif %}>Cargo</option>
+                                <option value="afp" {% if column_mapping.afp == column %}selected{% endif %}>AFP</option>
+                                <option value="estado_civil" {% if column_mapping.estado_civil == column %}selected{% endif %}>Estado civil</option>
+                                <option value="fecha_nacimiento" {% if column_mapping.fecha_nacimiento == column %}selected{% endif %}>Fecha de nacimiento</option>
+                                <option value="previcion_salud" {% if column_mapping.previcion_salud == column %}selected{% endif %}>Prevision de salud</option>
+                                <option value="correo" {% if column_mapping.correo == column %}selected{% endif %}>Correo</option>
+                            </select>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-body form-actions">
+            <button type="submit" name="guardar_mapeo" class="btn accent">Guardar mapeo</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

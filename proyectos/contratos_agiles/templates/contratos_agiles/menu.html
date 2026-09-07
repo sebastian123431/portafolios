@@ -1,0 +1,94 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Panel principal | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Panel principal</h1>
+        <p>Accesos centrales para trabajadores, contratos, reportes y asistencia.</p>
+    </div>
+    <div class="actions notification">
+        <button class="btn secondary" type="button" onclick="toggleNotifications()">
+            Contratos por vencer <span class="badge">{{ contratos_vencimiento.count }}</span>
+        </button>
+        <div id="notificationDropdown" class="dropdown-panel">
+            <h3>Contratos proximos</h3>
+            <div class="list" style="margin-top: 12px;">
+                {% for contrato in contratos_vencimiento %}
+                    <a class="list-row" href="{% url 'contratos_agiles:perfil_trabajador' contrato.trabajador.id %}">
+                        <span>{{ contrato.trabajador.nombre }} {{ contrato.trabajador.apellido }}</span>
+                        <small>{{ contrato.fecha_termino }}</small>
+                    </a>
+                {% empty %}
+                    <p class="empty-state">No hay vencimientos cercanos.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</header>
+
+<section class="grid cards-grid">
+    <a class="quick-action" href="{% url 'contratos_agiles:menu_trabajadores' %}">
+        <strong>Trabajadores</strong>
+        <span>Registrar, visualizar, importar y exportar personal.</span>
+    </a>
+    <a class="quick-action" href="{% url 'contratos_agiles:menu_contratos' %}">
+        <strong>Contratos</strong>
+        <span>Subir plantillas, generar documentos y manejar masivos.</span>
+    </a>
+    <a class="quick-action" href="{% url 'contratos_agiles:reportes' %}">
+        <strong>Reportes</strong>
+        <span>Graficos por AFP, prevision y datos de nacimiento.</span>
+    </a>
+    <a class="quick-action" href="{% url 'contratos_agiles:registrar_asistencia' %}">
+        <strong>Asistencia</strong>
+        <span>Registrar y revisar asistencia de trabajadores.</span>
+    </a>
+</section>
+
+<section class="grid content-grid" style="margin-top: 18px;">
+    <article class="card">
+        <div class="card-header">
+            <h2>Atajos operativos</h2>
+        </div>
+        <div class="card-body list">
+            <a class="list-row" href="{% url 'contratos_agiles:visualizar_trabajadores' %}">
+                <span>Nomina de trabajadores</span>
+                <small>Ver perfiles y cargos</small>
+            </a>
+            <a class="list-row" href="{% url 'contratos_agiles:importar_trabajadores' %}">
+                <span>Importacion Excel/CSV</span>
+                <small>Mapeo de columnas</small>
+            </a>
+            <a class="list-row" href="{% url 'contratos_agiles:generar_contratos_masivos' %}">
+                <span>Contratos masivos</span>
+                <small>Generar ZIP de PDFs</small>
+            </a>
+            <a class="list-row" href="{% url 'contratos_agiles:ver_asistencia' %}">
+                <span>Dashboard de asistencia</span>
+                <small>Filtrar por fecha</small>
+            </a>
+        </div>
+    </article>
+    <article class="card">
+        <div class="card-header">
+            <h2>Sesion</h2>
+        </div>
+        <div class="card-body">
+            <p class="empty-state">Usa el panel lateral para moverte por los modulos del sistema.</p>
+            <div class="form-actions">
+                <a class="btn secondary" href="{% url 'contratos_agiles:login' %}">Cerrar sesion</a>
+            </div>
+        </div>
+    </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleNotifications() {
+        document.getElementById("notificationDropdown").classList.toggle("active");
+    }
+</script>
+{% endblock %}

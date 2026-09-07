@@ -9,8 +9,22 @@
   const dataLines = document.getElementById("data-lines");
   const scanline = document.querySelector(".scanline");
   const statusPanels = document.querySelectorAll(".status-panel");
+  const projectLiveModal = document.getElementById("project-live-modal");
+  const projectLiveBody = projectLiveModal?.querySelector(".project-live-body");
+  const projectLiveDefaultBodyHTML = projectLiveBody?.innerHTML || "";
+  let projectLiveFrame = document.getElementById("project-live-frame");
+  const projectLiveTitle = document.getElementById("project-live-title");
+  const projectLiveWindow = projectLiveModal?.querySelector(".project-live-window");
+  let projectLiveLoader = document.getElementById("project-live-loader");
+  let projectLiveError = document.getElementById("project-live-error");
+  let projectLiveRetry = document.getElementById("project-live-retry");
+  const projectLiveClose = document.getElementById("project-live-close");
   let simulationModal = null;
   let imageModal = null;
+  let projectLiveLastTrigger = null;
+  let projectLiveCurrentUrl = "";
+  let projectLiveLoadTimer = null;
+  let projectLiveMode = "iframe";
   const imageZoomState = {
     scale: 1,
     x: 0,
@@ -176,6 +190,18 @@
     return layoutViewport;
   }
 
+  function isLandscapeHandset(viewport) {
+    return viewport.width > viewport.height && viewport.height <= 560 && viewport.width <= 1024;
+  }
+
+  function isCompactViewport(viewport) {
+    return viewport.width < 900 || isLandscapeHandset(viewport);
+  }
+
+  function isPhoneViewport(viewport) {
+    return Math.min(viewport.width, viewport.height) < 600 && Math.max(viewport.width, viewport.height) <= 1024;
+  }
+
   function shouldFreezeForZoom(nextViewport) {
     if (!layoutViewport) return false;
     const visualScale = window.visualViewport?.scale || 1;
@@ -205,10 +231,10 @@
   function fitNodeScale(childCount = 0, viewport = readViewport()) {
     const width = viewport.width;
     const height = viewport.height;
-    const compact = width < 900;
-    const phone = width < 600;
+    const compact = isCompactViewport(viewport);
+    const phone = isPhoneViewport(viewport);
     const landscape = width > height;
-    const shortLandscape = compact && landscape && height < 520;
+    const shortLandscape = isLandscapeHandset(viewport);
     const denseChildren = childCount > 6;
     const portraitPhone = phone && !landscape;
     const panelExpanded = isPanelExpanded();
@@ -225,30 +251,40 @@
     const mobilePanelPortrait = portraitPhone && panelExpanded && childCount > 0;
 
     const coreSize = compact
-      ? limit(Math.min(width * (landscapePhone ? 0.22 : portraitPhone ? 0.24 : landscape ? 0.22 : 0.28), usableHeight * (portraitPhone ? 0.18 : landscape ? 0.28 : 0.23)), landscapePhone ? 90 : 104, landscapePhone ? 132 : landscape ? 174 : 132)
+      ? limit(Math.min(width * (landscapePhone ? 0.22 : portraitPhone ? 0.24 : landscape ? 0.22 : 0.28), usableHeight * (portraitPhone ? 0.18 : landscape ? 0.28 : 0.23)), landscapePhone ? 100 : 104, landscapePhone ? 136 : landscape ? 174 : 132)
       : limit(Math.min(usableWidth * 0.15, usableHeight * 0.28), 170, 224);
     const nodeSize = compact
-      ? limit(Math.min(width * (landscapePhone ? 0.13 : portraitPhone ? 0.16 : landscape ? 0.17 : 0.18), usableHeight * (portraitPhone ? 0.12 : landscape ? 0.22 : 0.14)), landscapePhone ? 58 : 78, landscapePhone ? 88 : landscape ? 138 : 96)
+      ? limit(Math.min(width * (landscapePhone ? 0.13 : portraitPhone ? 0.16 : landscape ? 0.17 : 0.18), usableHeight * (portraitPhone ? 0.12 : landscape ? 0.22 : 0.14)), landscapePhone ? 70 : 78, landscapePhone ? 96 : landscape ? 138 : 96)
       : limit(Math.min(usableWidth * 0.12, usableHeight * 0.17), 106, 156);
     const childSize = denseChildren
       ? (compact
-        ? limit(Math.min(width * (landscapePhone ? 0.12 : portraitPhone ? 0.15 : 0.18), usableHeight * (portraitPhone ? 0.1 : 0.13)), landscapePhone ? 56 : 60, landscapePhone ? 84 : 80)
+        ? limit(Math.min(width * (landscapePhone ? 0.12 : portraitPhone ? 0.15 : 0.18), usableHeight * (portraitPhone ? 0.1 : 0.13)), landscapePhone ? 64 : 60, landscapePhone ? 88 : 80)
         : limit(Math.min(width * 0.11, usableHeight * 0.18), 104, 158))
       : (compact
-        ? limit(Math.min(width * (landscapePhone ? 0.13 : portraitPhone ? 0.17 : 0.2), usableHeight * (portraitPhone ? 0.11 : 0.16)), landscapePhone ? 58 : 62, landscapePhone ? 92 : 82)
+        ? limit(Math.min(width * (landscapePhone ? 0.13 : portraitPhone ? 0.17 : 0.2), usableHeight * (portraitPhone ? 0.11 : 0.16)), landscapePhone ? 76 : 62, landscapePhone ? 104 : 82)
         : limit(Math.min(usableWidth * 0.17, usableHeight * 0.28), 136, 206));
     let moduleChildSize = childCount > 12
       ? (compact
-        ? limit(Math.min(width * (landscapePhone ? 0.14 : portraitPhone ? 0.16 : 0.18), usableHeight * (portraitPhone ? 0.1 : 0.13)), landscapePhone ? 58 : 66, landscapePhone ? 78 : 90)
+        ? limit(Math.min(width * (landscapePhone ? 0.14 : portraitPhone ? 0.16 : 0.18), usableHeight * (portraitPhone ? 0.1 : 0.13)), landscapePhone ? 64 : 66, landscapePhone ? 88 : 90)
         : limit(Math.min(usableWidth * 0.11, usableHeight * 0.14), 78, 118))
       : (compact
-        ? limit(childSize * (portraitPhone ? 0.86 : 0.94), landscapePhone ? 58 : 70, landscapePhone ? 88 : 104)
+        ? limit(childSize * (portraitPhone ? 0.86 : 0.94), landscapePhone ? 68 : 70, landscapePhone ? 96 : 104)
         : limit(childSize * 0.82, 128, 184));
     let moduleParentSize = compact
-      ? limit(coreSize * (portraitPhone ? 0.7 : landscapePhone ? 0.64 : 0.74), landscapePhone ? 58 : 62, landscapePhone ? 78 : 94)
+      ? limit(coreSize * (portraitPhone ? 0.7 : landscapePhone ? 0.7 : 0.74), landscapePhone ? 70 : 62, landscapePhone ? 96 : 94)
       : limit(nodeSize * 1.08, 116, 156);
 
+    const sparseChildren = childCount > 0 && childCount <= 2;
+    if (sparseChildren && !compact) {
+      moduleChildSize = limit(Math.min(width * 0.2, visibleSceneHeight * 0.29), 196, 220);
+      moduleParentSize = limit(Math.min(width * 0.145, visibleSceneHeight * 0.23), 160, 180);
+    }
+
     if (mobilePanelPortrait) {
+      if (sparseChildren) {
+        moduleParentSize = limit(Math.min(width * 0.25, visibleSceneHeight * 0.28), 78, 104);
+        moduleChildSize = limit(Math.min(width * 0.32, visibleSceneHeight * 0.32), 96, 128);
+      } else {
       const columns = childCount > 6 ? 4 : childCount > 3 ? 3 : Math.max(1, childCount);
       const rows = Math.ceil(childCount / columns);
       const horizontalFit = (width - 26 - ((columns - 1) * 10)) / columns;
@@ -261,6 +297,7 @@
         childCount > 6 ? 52 : 56,
         childCount > 6 ? 68 : 76
       );
+      }
     }
 
     root.style.setProperty("--core-size", `${coreSize}px`);
@@ -273,8 +310,9 @@
   function adaptViewport({ render = true } = {}) {
     const { width, height } = readViewport();
     const root = document.documentElement;
-    const compact = width < 900;
-    const phone = width < 600;
+    const viewport = { width, height };
+    const compact = isCompactViewport(viewport);
+    const phone = isPhoneViewport(viewport);
     const portrait = height >= width;
 
     root.style.setProperty("--viewport-width", `${width}px`);
@@ -283,7 +321,7 @@
     root.classList.toggle("viewport-phone", phone);
     root.classList.toggle("viewport-portrait", portrait);
     root.classList.toggle("viewport-landscape", width > height);
-    root.classList.toggle("viewport-short-landscape", compact && width > height && height < 520);
+    root.classList.toggle("viewport-short-landscape", isLandscapeHandset(viewport));
 
     fitNodeScale(currentLevel === "children" ? (bubbles.find((bubble) => bubble.id === activeId)?.children || []).length : 0, { width, height });
     drawTechField();
@@ -307,7 +345,7 @@
   function adjustCenterForPanel() {
     try {
       const viewport = readViewport();
-      const phone = viewport.width < 600;
+      const phone = isPhoneViewport(viewport);
       const landscape = viewport.width > viewport.height;
       if (!phone || !landscape || !document.body.classList.contains("children-panel")) return;
 
@@ -366,6 +404,16 @@
     }, 180);
   }
 
+  function stabilizeAfterOrientationChange() {
+    [120, 420].forEach((delay) => {
+      window.setTimeout(() => {
+        layoutViewport = readLiveViewport();
+        lastDevicePixelRatio = window.devicePixelRatio || 1;
+        adaptViewport();
+      }, delay);
+    });
+  }
+
   function syncClusterFrameCenter() {
     const frame = scene.querySelector(".module-frame");
     const tech = scene.querySelector(".tech-frame");
@@ -415,6 +463,8 @@
       });
       return;
     }
+
+    if (document.body.classList.contains("home-level")) return;
 
     const center = scene.querySelector(".bubble.center");
     const primaryNodes = Array.from(scene.querySelectorAll(".bubble.primary:not(.module-parent)"));
@@ -560,15 +610,18 @@
   }
 
   function homeCenterY(rect, viewport) {
-    const shortLandscape = viewport.width < 900 && viewport.width > viewport.height && viewport.height < 520;
-    return shortLandscape ? rect.height * 0.58 : rect.height / 2 + 8;
+    const shortLandscape = isLandscapeHandset(viewport);
+    const portraitPhone = isPhoneViewport(viewport) && viewport.height >= viewport.width;
+    if (shortLandscape) return rect.height * 0.58;
+    if (portraitPhone) return clamp(rect.height * 0.58, Math.min(270, rect.height * 0.5), rect.height - 105);
+    return rect.height / 2 + 8;
   }
 
   function childrenParentY(rect, viewport, panelExpanded = isPanelExpanded()) {
-    const compact = viewport.width < 900;
-    const phone = viewport.width < 600;
+    const compact = isCompactViewport(viewport);
+    const phone = isPhoneViewport(viewport);
     const landscape = viewport.width > viewport.height;
-    const shortLandscape = compact && landscape && viewport.height < 520;
+    const shortLandscape = isLandscapeHandset(viewport);
     const parentSize = measureBubble("primary module-parent");
     const parentRadius = parentSize / 2;
     const top = parentRadius + (shortLandscape ? 28 : phone && !landscape && panelExpanded ? 20 : 48);
@@ -621,10 +674,10 @@
   function graphLayout(items, mode) {
     const rect = scene.getBoundingClientRect();
     const viewport = readViewport();
-    const compact = viewport.width < 900;
-    const phone = viewport.width < 600;
+    const compact = isCompactViewport(viewport);
+    const phone = isPhoneViewport(viewport);
     const landscape = viewport.width > viewport.height;
-    const shortLandscape = compact && landscape && viewport.height < 520;
+    const shortLandscape = isLandscapeHandset(viewport);
     const panelOpen = isPanelExpanded();
     const phonePanel = phone && panelOpen;
     const nodeSize = measureBubble(mode === "children" ? "child module-child" : "primary");
@@ -854,13 +907,15 @@
 
       return `
         <div class="bubble-content">
-          ${iconHTML(data, "")}
+          <div class="center-header">
+            ${iconHTML(data, data.name || data.label)}
+            <span class="node-meta">PERFIL PROFESIONAL</span>
+          </div>
           <span class="center-name">${escapeHTML(data.name || data.label)}</span>
-          ${data.tagline ? `<span class="center-tagline">${escapeHTML(data.tagline)}</span>` : ""}
           <span class="center-title">${escapeHTML(data.title || "")}</span>
           ${data.subtitle ? `<span class="center-subtitle">${escapeHTML(data.subtitle)}</span>` : ""}
-          <span class="node-meta">${escapeHTML((data.stats || []).join(" · ") || "PERFIL TÉCNICO")}</span>
-          <span class="stat-row">${chips}</span>
+          ${data.tagline ? `<span class="center-tagline">“${escapeHTML(data.tagline)}”</span>` : ""}
+          <div class="stat-row">${chips}</div>
         </div>
       `;
     }
@@ -869,7 +924,7 @@
       <div class="bubble-content">
         ${iconHTML(data, "")}
         <span class="label" title="${escapeHTML(data.label)}">${nodeLabelHTML(data, variant)}</span>
-        ${data.text ? `<span class="micro">${escapeHTML(data.text)}</span>` : ""}
+        ${(data.text || data.content) ? `<span class="micro">${escapeHTML(data.text || data.content)}</span>` : ""}
         ${(data.level || data.badge) ? `<span class="level-tag">${escapeHTML(data.level || data.badge)}</span>` : ""}
         <span class="node-meta">${escapeHTML(data.kind === "skill" ? `TECH // ${data.icon || "NODE"}` : data.kind === "certificate" ? `CERT // ${data.icon || "NODE"}` : (data.id || data.kind || "node")).toUpperCase()}</span>
       </div>
@@ -1034,10 +1089,12 @@
   function clearScene(callback) {
     const oldBubbles = Array.from(scene.querySelectorAll(".bubble"));
     const oldModuleStacks = Array.from(scene.querySelectorAll(".module-stack"));
+    const oldHomeGrids = Array.from(scene.querySelectorAll(".portfolio-map-grid"));
     clearConnectors();
     scene.querySelectorAll(".tech-frame, .module-frame").forEach((frame) => frame.remove());
     if (!oldBubbles.length) {
       oldModuleStacks.forEach((stack) => stack.remove());
+      oldHomeGrids.forEach((grid) => grid.remove());
       callback();
       return;
     }
@@ -1047,6 +1104,7 @@
     if (prefersReduced) {
       oldBubbles.forEach((element) => element.remove());
       oldModuleStacks.forEach((stack) => stack.remove());
+      oldHomeGrids.forEach((grid) => grid.remove());
       callback();
       return;
     }
@@ -1061,6 +1119,7 @@
       complete: () => {
         oldBubbles.forEach((element) => element.remove());
         oldModuleStacks.forEach((stack) => stack.remove());
+        oldHomeGrids.forEach((grid) => grid.remove());
         callback();
       },
     });
@@ -1074,30 +1133,27 @@
 
     // Ensure CSS that positions the detail panel for "children" is disabled
     document.body.classList.remove("children-panel");
+    document.body.classList.remove("sparse-module");
     logLayoutEvent("level:home", { activeId });
 
     clearScene(() => {
-      makeFrame();
+      document.body.classList.add("home-level");
+      const grid = document.createElement("div");
+      grid.className = "portfolio-map-grid";
+      scene.appendChild(grid);
 
-      const rect = scene.getBoundingClientRect();
       const center = createBubble(centerData, "center");
-      scene.appendChild(center);
-      setPosition(center, rect.width / 2, homeCenterY(rect, readViewport()));
+      grid.appendChild(center);
 
-      const nodes = graphLayout(mainBubbles, "home");
       const created = [center];
-      const children = [];
 
-      nodes.forEach(({ item, x, y }) => {
+      mainBubbles.forEach((item) => {
         const element = createBubble(item, "primary");
-        scene.appendChild(element);
-        setPosition(element, x, y);
+        grid.appendChild(element);
         created.push(element);
-        children.push(element);
       });
 
       animateIn(created);
-      requestAnimationFrame(() => drawConnectors(center, children));
     });
   }
 
@@ -1108,10 +1164,12 @@
     document.body.classList.add("panel-open");
     // mark that children panel logic is active so CSS can render the panel to the right
     document.body.classList.add("children-panel");
+    document.body.classList.toggle("sparse-module", children.length <= 2);
     logLayoutEvent("level:children", { activeId: parent.id });
     fitNodeScale(children.length);
 
     clearScene(() => {
+      document.body.classList.remove("home-level");
       const moduleFrame = makeModuleFrame();
 
       const parentBubble = createBubble(parent, "primary");
@@ -1332,16 +1390,372 @@
     if (!Array.isArray(data.actions) || !data.actions.length) return "";
 
     return `
-      <div class="detail-actions" aria-label="Acciones del perfil">
-        ${data.actions.map((action) => `
+      <div class="detail-actions" aria-label="Acciones del proyecto">
+        ${data.actions.map((action) => {
+          const label = escapeHTML(action.label || "Abrir");
+          const icon = action.icon ? `<i class="bi ${escapeHTML(action.icon)}" aria-hidden="true"></i>` : "";
+          if (action.type === "live-demo") {
+            return `
+              <button class="detail-action project-live-button" type="button" data-project-live data-project-url="${escapeHTML(action.href || action.url || "#")}" data-project-title="${escapeHTML(action.title || data.label || "Proyecto")}">
+                ${icon}
+                ${label}
+                <span aria-hidden="true">&#8599;</span>
+              </button>
+            `;
+          }
+          if (action.type === "case-study") {
+            return `
+              <button class="detail-action project-live-button" type="button" data-controlbins-study data-project-title="${escapeHTML(action.title || data.label || "ControlBins")}">
+                ${icon}
+                ${label}
+                <span aria-hidden="true">&#8599;</span>
+              </button>
+            `;
+          }
+          return `
           <a class="detail-action" href="${escapeHTML(action.href || "#")}" ${action.href && !action.href.startsWith("/") ? 'target="_blank" rel="noopener"' : ""}>
-            ${action.icon ? `<i class="bi ${escapeHTML(action.icon)}" aria-hidden="true"></i>` : ""}
-            ${escapeHTML(action.label || "Abrir")}
+            ${icon}
+            ${label}
             <span aria-hidden="true">&#8599;</span>
           </a>
-        `).join("")}
+        `;
+        }).join("")}
       </div>
     `;
+  }
+
+  function projectLiveParts() {
+    projectLiveFrame = document.getElementById("project-live-frame");
+    projectLiveLoader = document.getElementById("project-live-loader");
+    projectLiveError = document.getElementById("project-live-error");
+    projectLiveRetry = document.getElementById("project-live-retry");
+    return { frame: projectLiveFrame, loader: projectLiveLoader, error: projectLiveError, retry: projectLiveRetry };
+  }
+
+  function bindProjectLiveFrameControls() {
+    const { frame, retry } = projectLiveParts();
+    if (retry && retry.dataset.bound !== "true") {
+      retry.dataset.bound = "true";
+      retry.addEventListener("click", () => loadProjectLiveUrl(projectLiveCurrentUrl));
+    }
+    if (frame && frame.dataset.bound !== "true") {
+      frame.dataset.bound = "true";
+      frame.addEventListener("load", () => {
+        if (!projectLiveModal?.classList.contains("is-open") || frame.src === "about:blank") return;
+        if (projectLiveLoadTimer) {
+          window.clearTimeout(projectLiveLoadTimer);
+          projectLiveLoadTimer = null;
+        }
+        if (projectLiveError) projectLiveError.hidden = true;
+        projectLiveModal.classList.remove("has-error");
+        setProjectLiveLoading(false);
+      });
+    }
+  }
+
+  function restoreProjectLiveFrameBody() {
+    if (!projectLiveBody || projectLiveBody.querySelector("#project-live-frame")) return;
+    projectLiveBody.innerHTML = projectLiveDefaultBodyHTML;
+    bindProjectLiveFrameControls();
+  }
+
+  function renderFlowPills(items = []) {
+    return items.map((item, index) => `
+      <span class="cb-flow-pill">
+        ${escapeHTML(item)}
+        ${index < items.length - 1 ? '<i class="bi bi-arrow-right" aria-hidden="true"></i>' : ""}
+      </span>
+    `).join("");
+  }
+
+  function controlbinsScreens(data) {
+    return data?.case_study?.screens || [];
+  }
+
+  function controlbinsScreenButton(screen, activeId) {
+    return `
+      <button class="cb-map-node ${screen.id === activeId ? "is-active" : ""} ${screen.secondary ? "is-secondary" : ""}" type="button" data-cb-screen="${escapeHTML(screen.id)}">
+        <span>${escapeHTML(screen.group || "Vista")}</span>
+        <strong>${escapeHTML(screen.title)}</strong>
+      </button>
+    `;
+  }
+
+  function renderControlBinsOverview(data) {
+    const study = data.case_study || {};
+    return `
+      <section class="cb-overview" aria-label="Vision general de ControlBins">
+        <div class="cb-intro">
+          <p class="detail-eyebrow">Proyecto empresarial</p>
+          <h3>ControlBins</h3>
+          <p>${escapeHTML(study.intro || data.content || "")}</p>
+          <p class="cb-privacy"><i class="bi bi-shield-lock" aria-hidden="true"></i>${escapeHTML(study.privacy || data.note || "")}</p>
+        </div>
+        <div class="cb-system-flow" aria-label="Flujo funcional del sistema">
+          ${(study.flow || []).map((step, index) => `
+            <article class="cb-flow-step">
+              <span class="cb-flow-dot" aria-hidden="true"></span>
+              <strong>${escapeHTML(step)}</strong>
+              ${index < (study.flow || []).length - 1 ? '<i class="bi bi-arrow-right cb-flow-arrow" aria-hidden="true"></i>' : ""}
+            </article>
+          `).join("")}
+          <span class="cb-flow-runner" aria-hidden="true"></span>
+        </div>
+        <div class="cb-area-grid">
+          ${(study.areas || []).map((area) => `
+            <article class="cb-area-card">
+              <i class="bi ${escapeHTML(area.icon || "bi-circle")}" aria-hidden="true"></i>
+              <strong>${escapeHTML(area.title)}</strong>
+              <p>${escapeHTML(area.summary)}</p>
+            </article>
+          `).join("")}
+        </div>
+        <button class="cb-primary" type="button" data-cb-tab-target="dashboard">
+          Explorar dashboard <i class="bi bi-arrow-right" aria-hidden="true"></i>
+        </button>
+      </section>
+    `;
+  }
+
+  function renderControlBinsDashboard(data, activeId = "dashboard") {
+    const screens = controlbinsScreens(data);
+    const active = screens.find((screen) => screen.id === activeId) || screens.find((screen) => screen.id === "dashboard") || screens[0];
+    const operational = ["login", "dashboard", "dispatch-report", "dispatch-detail", "bins-report", "seed-count", "timeline"]
+      .map((id) => screens.find((screen) => screen.id === id))
+      .filter(Boolean);
+    const historical = ["bins-history", "dispatch-history", "dispatch-history-detail", "seed-history", "field-history"]
+      .map((id) => screens.find((screen) => screen.id === id))
+      .filter(Boolean);
+    const secondary = screens.filter((screen) => screen.secondary);
+    const nextScreen = active?.next ? screens.find((screen) => screen.id === active.next) : null;
+
+    return `
+      <section class="cb-dashboard" aria-label="Explorador del dashboard ControlBins">
+        <div class="cb-map">
+          <div class="cb-map-section">
+            <span class="cb-map-title">Flujo dashboard</span>
+            <div class="cb-node-grid">
+              ${operational.map((screen) => controlbinsScreenButton(screen, active?.id)).join("")}
+            </div>
+          </div>
+          <div class="cb-map-section">
+            <span class="cb-map-title">Análisis histórico</span>
+            <div class="cb-node-grid">
+              ${historical.map((screen) => controlbinsScreenButton(screen, active?.id)).join("")}
+            </div>
+          </div>
+          ${secondary.length ? `
+            <div class="cb-map-section cb-map-section-secondary">
+              <span class="cb-map-title">Evidencia secundaria</span>
+              <div class="cb-node-grid">${secondary.map((screen) => controlbinsScreenButton(screen, active?.id)).join("")}</div>
+            </div>
+          ` : ""}
+        </div>
+        <article class="cb-screen-detail">
+          <div class="cb-capture-frame">
+            <img src="${escapeHTML(active?.src || "")}" alt="Captura de ${escapeHTML(active?.title || "ControlBins")}" loading="lazy" decoding="async" draggable="false">
+          </div>
+          <div class="cb-screen-copy">
+            <span>${escapeHTML(active?.group || "Vista")}</span>
+            <h3>${escapeHTML(active?.title || "Vista ControlBins")}</h3>
+            <p>${escapeHTML(active?.description || "")}</p>
+            <div class="cb-flow-pills" aria-label="Relacion funcional">${renderFlowPills(active?.flow || [])}</div>
+            <div class="cb-screen-actions">
+              <button type="button" data-cb-tab-target="overview"><i class="bi bi-arrow-left" aria-hidden="true"></i> Flujo del sistema</button>
+              ${nextScreen ? `<button type="button" data-cb-screen="${escapeHTML(nextScreen.id)}">${escapeHTML(nextScreen.title)} <i class="bi bi-arrow-right" aria-hidden="true"></i></button>` : ""}
+            </div>
+          </div>
+        </article>
+      </section>
+    `;
+  }
+
+  function renderControlBinsArchitecture(data) {
+    const study = data.case_study || {};
+    const architecture = [
+      ["App móvil", "Captura operacional en terreno"],
+      ["API / Backend", "Centralización y servicios para el sistema"],
+      ["Persistencia", "Datos disponibles para consulta"],
+      ["Dashboard", "Gestión, reportes e históricos"],
+    ];
+
+    return `
+      <section class="cb-architecture" aria-label="Arquitectura funcional ControlBins">
+        <p>${escapeHTML(study.intro || "")}</p>
+        <div class="cb-architecture-flow">
+          ${architecture.map(([title, copy], index) => `
+            <article>
+              <span>${String(index + 1).padStart(2, "0")}</span>
+              <strong>${escapeHTML(title)}</strong>
+              <p>${escapeHTML(copy)}</p>
+            </article>
+          `).join("")}
+        </div>
+        <p class="cb-privacy"><i class="bi bi-shield-lock" aria-hidden="true"></i>No se incorporó código fuente, endpoints, modelos ni consultas internas de ControlBins.</p>
+      </section>
+    `;
+  }
+
+  function setControlBinsTab(data, tab = "overview", activeId = "dashboard") {
+    const root = projectLiveBody?.querySelector("[data-controlbins-case]");
+    if (!root) return;
+    root.dataset.activeTab = tab;
+    root.querySelectorAll("[data-cb-tab]").forEach((button) => {
+      button.classList.toggle("is-active", button.dataset.cbTab === tab);
+    });
+    const stage = root.querySelector(".cb-case-stage");
+    if (!stage) return;
+    if (tab === "dashboard") stage.innerHTML = renderControlBinsDashboard(data, activeId);
+    else if (tab === "architecture") stage.innerHTML = renderControlBinsArchitecture(data);
+    else stage.innerHTML = renderControlBinsOverview(data);
+    bindControlBinsCaseStudy(data);
+    animateControlBinsCase(root);
+  }
+
+  function bindControlBinsCaseStudy(data) {
+    const root = projectLiveBody?.querySelector("[data-controlbins-case]");
+    if (!root) return;
+    root.querySelectorAll("[data-cb-tab]").forEach((button) => {
+      if (button.dataset.bound === "true") return;
+      button.dataset.bound = "true";
+      button.addEventListener("click", () => setControlBinsTab(data, button.dataset.cbTab || "overview"));
+    });
+    root.querySelectorAll("[data-cb-tab-target]").forEach((button) => {
+      if (button.dataset.bound === "true") return;
+      button.dataset.bound = "true";
+      button.addEventListener("click", () => setControlBinsTab(data, button.dataset.cbTabTarget || "overview"));
+    });
+    root.querySelectorAll("[data-cb-screen]").forEach((button) => {
+      if (button.dataset.bound === "true") return;
+      button.dataset.bound = "true";
+      button.addEventListener("click", () => setControlBinsTab(data, "dashboard", button.dataset.cbScreen || "dashboard"));
+    });
+  }
+
+  function animateControlBinsCase(root) {
+    if (prefersReduced || !root) return;
+    const targets = root.querySelectorAll(".cb-flow-step, .cb-area-card, .cb-map-node, .cb-screen-detail, .cb-architecture-flow article");
+    animeDriver.remove(targets);
+    animeDriver({
+      targets,
+      opacity: [0, 1],
+      translateY: [12, 0],
+      delay: animeDriver.stagger ? animeDriver.stagger(35) : 0,
+      duration: 360,
+      easing: "easeOutExpo",
+    });
+    const runner = root.querySelector(".cb-flow-runner");
+    if (runner) {
+      animeDriver.remove(runner);
+      animeDriver({
+        targets: runner,
+        translateX: ["0%", "520%"],
+        opacity: [0, 1, 0],
+        duration: 2200,
+        easing: "easeInOutSine",
+        loop: true,
+      });
+    }
+  }
+
+  function renderControlBinsCaseStudy(data) {
+    return `
+      <div class="cb-case-study" data-controlbins-case data-active-tab="overview">
+        <nav class="cb-tabs" aria-label="Secciones de ControlBins">
+          <button class="is-active" type="button" data-cb-tab="overview">Visión general</button>
+          <button type="button" data-cb-tab="dashboard">Dashboard web</button>
+          <button type="button" data-cb-tab="architecture">Arquitectura</button>
+        </nav>
+        <div class="cb-case-stage">${renderControlBinsOverview(data)}</div>
+      </div>
+    `;
+  }
+
+  function openControlBinsCaseStudy(data, trigger) {
+    const studyUrl = data?.actions?.find((a) => a.type === "case-study" || a.type === "live-demo")?.href || "/proyectos/controlbins/";
+    openProjectLiveViewer({
+      url: studyUrl,
+      title: "ControlBins",
+      trigger,
+    });
+  }
+
+  function setProjectLiveLoading(isLoading) {
+    if (!projectLiveModal) return;
+    projectLiveModal.classList.toggle("is-loaded", !isLoading);
+    if (projectLiveLoader) projectLiveLoader.hidden = !isLoading;
+  }
+
+  function showProjectLiveError() {
+    if (!projectLiveModal) return;
+    projectLiveModal.classList.add("has-error");
+    setProjectLiveLoading(false);
+    if (projectLiveError) projectLiveError.hidden = false;
+  }
+
+  function resetProjectLiveFrame() {
+    if (projectLiveLoadTimer) {
+      window.clearTimeout(projectLiveLoadTimer);
+      projectLiveLoadTimer = null;
+    }
+    if (projectLiveFrame) projectLiveFrame.src = "about:blank";
+    if (projectLiveError) projectLiveError.hidden = true;
+    if (projectLiveModal) projectLiveModal.classList.remove("is-loaded", "has-error");
+    setProjectLiveLoading(true);
+  }
+
+  function loadProjectLiveUrl(url) {
+    if (!projectLiveFrame || !url || url === "#") return;
+    resetProjectLiveFrame();
+    projectLiveCurrentUrl = url;
+    projectLiveLoadTimer = window.setTimeout(showProjectLiveError, 14000);
+    window.requestAnimationFrame(() => {
+      projectLiveFrame.src = url;
+    });
+  }
+
+  function openProjectLiveViewer({ url, title, trigger }) {
+    restoreProjectLiveFrameBody();
+    projectLiveMode = "iframe";
+    if (!projectLiveModal || !projectLiveFrame || !url || url === "#") return;
+    projectLiveLastTrigger = trigger || document.activeElement;
+    if (projectLiveTitle) projectLiveTitle.textContent = title || "Proyecto";
+    projectLiveFrame.title = `${title || "Proyecto"} - demo interactiva`;
+    projectLiveModal.classList.remove("is-case-study");
+    projectLiveModal.classList.add("is-open");
+    projectLiveModal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open", "project-live-open");
+    loadProjectLiveUrl(url);
+    (projectLiveClose || projectLiveWindow || projectLiveModal).focus({ preventScroll: true });
+
+    if (!prefersReduced && projectLiveWindow) {
+      animeDriver.remove(projectLiveWindow);
+      animeDriver({
+        targets: projectLiveWindow,
+        opacity: [0, 1],
+        scale: [0.985, 1],
+        translateY: [18, 0],
+        duration: 300,
+        easing: "easeOutExpo",
+      });
+    }
+  }
+
+  function closeProjectLiveViewer() {
+    if (!projectLiveModal) return;
+    if (projectLiveMode === "iframe") resetProjectLiveFrame();
+    projectLiveModal.classList.remove("is-open");
+    projectLiveModal.classList.remove("is-case-study");
+    projectLiveModal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open", "project-live-open");
+    if (projectLiveMode === "case-study") {
+      if (projectLiveBody) projectLiveBody.innerHTML = projectLiveDefaultBodyHTML;
+      bindProjectLiveFrameControls();
+    }
+    projectLiveMode = "iframe";
+    if (projectLiveLastTrigger && typeof projectLiveLastTrigger.focus === "function") {
+      projectLiveLastTrigger.focus({ preventScroll: true });
+    }
   }
 
   function showPanel(data) {
@@ -1519,6 +1933,18 @@
       projectButton.addEventListener("click", () => {
         if (relatedProject) showPanel(relatedProject);
       });
+    });
+
+    content.querySelectorAll("[data-project-live]").forEach((projectButton) => {
+      projectButton.addEventListener("click", () => openProjectLiveViewer({
+        url: projectButton.dataset.projectUrl,
+        title: projectButton.dataset.projectTitle || data.label || "Proyecto",
+        trigger: projectButton,
+      }));
+    });
+
+    content.querySelectorAll("[data-controlbins-study]").forEach((projectButton) => {
+      projectButton.addEventListener("click", () => openControlBinsCaseStudy(data, projectButton));
     });
 
     content.querySelectorAll("[data-reveal-secret]").forEach((revealButton) => {
@@ -2284,6 +2710,18 @@
   }
 
   if (toggleButton) toggleButton.addEventListener("click", togglePanel);
+  document.querySelectorAll("[data-portfolio-target]").forEach((trigger) => {
+    trigger.addEventListener("click", () => {
+      const parent = bubbles.find((item) => item.id === trigger.dataset.portfolioTarget);
+      const child = parent?.children?.find((item) => item.label === trigger.dataset.portfolioChild);
+      if (child) {
+        showPanel(child);
+        return;
+      }
+      const target = scene.querySelector(`[data-id="${trigger.dataset.portfolioTarget}"]`);
+      if (target) target.click();
+    });
+  });
   if (closeButton) {
     closeButton.addEventListener("click", () => {
       if (currentLevel === "children") {
@@ -2294,9 +2732,21 @@
     });
   }
 
+  if (projectLiveModal) {
+    projectLiveModal.querySelectorAll("[data-project-live-close]").forEach((button) => {
+      button.addEventListener("click", closeProjectLiveViewer);
+    });
+  }
+  bindProjectLiveFrameControls();
+
   window.addEventListener("keydown", (event) => {
     const imageIsOpen = imageModal && imageModal.classList.contains("is-open");
+    const projectIsOpen = projectLiveModal && projectLiveModal.classList.contains("is-open");
     if (event.key === "Escape") {
+      if (projectIsOpen) {
+        closeProjectLiveViewer();
+        return;
+      }
       if (imageIsOpen) {
         closeImageModal();
         return;
@@ -2326,6 +2776,8 @@
   window.addEventListener("resize", () => {
     scheduleViewportAdapt();
   });
+
+  window.addEventListener("orientationchange", stabilizeAfterOrientationChange);
 
   if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", scheduleViewportAdapt);

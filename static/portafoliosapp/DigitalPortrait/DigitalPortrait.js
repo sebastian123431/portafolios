@@ -64,17 +64,38 @@ function performanceProfile() {
   const memory = navigator.deviceMemory || 8;
   const cores = navigator.hardwareConcurrency || 8;
   const mobile = window.innerWidth < 760;
-  const lite = mobile || memory <= 4 || cores <= 4;
+  const reducedData = Boolean(navigator.connection && navigator.connection.saveData);
+  const constrained = memory <= 4 || cores <= 4 || reducedData;
+  const lite = mobile || constrained;
 
   return {
     lite,
-    sampleWidth: lite ? 300 : 400,
-    maxNodes: lite ? 520 : 980,
-    fps: lite ? 24 : 42,
+    useOpenCV: !mobile && !reducedData,
+    sampleWidth: mobile ? (constrained ? 180 : 220) : constrained ? 260 : 400,
+    maxNodes: mobile ? (constrained ? 190 : 280) : constrained ? 380 : 980,
+    fps: mobile ? (constrained ? 14 : 18) : constrained ? 22 : 42,
   };
 }
 
+function protectPortrait(root) {
+  const protectedArea = root.querySelector("[data-protected-portrait]");
+  if (!protectedArea) return;
+
+  const blockImageAction = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  protectedArea.querySelectorAll("img, canvas").forEach((element) => {
+    element.draggable = false;
+  });
+  protectedArea.addEventListener("contextmenu", blockImageAction);
+  protectedArea.addEventListener("dragstart", blockImageAction);
+  protectedArea.addEventListener("selectstart", blockImageAction);
+}
+
 async function boot(root) {
+  protectPortrait(root);
   const stage = root.querySelector(".portrait-stage");
   const image = root.querySelector(".portrait");
   const graphCanvas = root.querySelector(".graph");
@@ -107,9 +128,15 @@ async function boot(root) {
 
   const sample = await samplePortrait(image, analysisCanvas, {
     sampleWidth: profile.sampleWidth,
+    useOpenCV: profile.useOpenCV,
   });
   renderer.setGraph(generateGraph(sample, { maxNodes: profile.maxNodes }));
-  createTimeline(state);
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    state.progress = 1;
+    state.onUpdate(state.progress);
+  } else {
+    createTimeline(state);
+  }
 
   const renderLoop = (time) => {
     if (!running) return;

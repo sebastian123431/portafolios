@@ -1,0 +1,46 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Contratos disponibles | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Contratos disponibles</h1>
+        <p>Plantillas guardadas para descarga, visualizacion o generacion.</p>
+    </div>
+    <div class="actions">
+        <a class="btn" href="{% url 'contratos_agiles:subir_contrato' %}">Subir contrato</a>
+        <a class="btn secondary" href="{% url 'contratos_agiles:seleccionar_contrato' %}">Generar</a>
+    </div>
+</header>
+
+<section class="card">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripcion</th>
+                    <th>Archivo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contrato in contratos %}
+                    <tr>
+                        <td><strong>{{ contrato.nombre }}</strong></td>
+                        <td>{{ contrato.descripcion }}</td>
+                        <td>
+                            <div class="actions">
+                                <a class="btn secondary" href="{{ contrato.archivo.url }}" download>Descargar</a>
+                                <a class="btn secondary" href="{% url 'contratos_agiles:visualizar_contrato' contrato.id %}">Ver</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="3" class="empty-state">No hay contratos disponibles.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

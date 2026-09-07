@@ -1,0 +1,1230 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --bg-deep: #020706;
+      --bg-card: rgba(4, 15, 12, 0.88);
+      --bg-card-hover: rgba(8, 26, 21, 0.95);
+      --border-subtle: rgba(57, 255, 20, 0.16);
+      --border-active: rgba(57, 255, 20, 0.65);
+      --border-cyan: rgba(0, 230, 255, 0.28);
+      --green-glow: #39ff14;
+      --green-soft: #2ecc71;
+      --cyan-glow: #00e6ff;
+      --orange-warm: #ff8a1c;
+      --text-main: #f5f9f7;
+      --text-muted: rgba(245, 249, 247, 0.68);
+      --text-dim: rgba(245, 249, 247, 0.45);
+      --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-heading: 'Space Grotesk', 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg-deep);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.55;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Ambient cyber grid background */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(rgba(57, 255, 20, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(57, 255, 20, 0.035) 1px, transparent 1px),
+        radial-gradient(ellipse at 15% 10%, rgba(57, 255, 20, 0.12), transparent 45%),
+        radial-gradient(ellipse at 85% 15%, rgba(0, 230, 255, 0.09), transparent 40%),
+        radial-gradient(circle at 50% 90%, rgba(57, 255, 20, 0.05), transparent 50%);
+      background-size: 38px 38px, 38px 38px, auto, auto, auto;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .cb-container {
+      position: relative;
+      z-index: 1;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: clamp(1rem, 2.5vw, 2.2rem);
+      display: flex;
+      flex-direction: column;
+      gap: 1.6rem;
+    }
+
+    /* Header */
+    .cb-header {
+      border: 1px solid var(--border-subtle);
+      border-radius: 1rem;
+      background: rgba(3, 12, 10, 0.75);
+      backdrop-filter: blur(14px);
+      padding: clamp(1.2rem, 2.8vw, 1.8rem);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+    }
+
+    .cb-header-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .cb-brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+    }
+
+    .cb-logo-badge {
+      width: 3.2rem;
+      height: 3.2rem;
+      border-radius: 0.8rem;
+      background: linear-gradient(135deg, rgba(57, 255, 20, 0.22), rgba(0, 230, 255, 0.18));
+      border: 1px solid var(--border-active);
+      display: grid;
+      place-items: center;
+      color: var(--green-glow);
+      font-size: 1.5rem;
+      box-shadow: 0 0 24px rgba(57, 255, 20, 0.28);
+    }
+
+    .cb-brand-text h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(1.6rem, 3.2vw, 2.3rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      color: #fff;
+    }
+
+    .cb-brand-text p {
+      font-size: 0.92rem;
+      color: var(--cyan-glow);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .cb-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .cb-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .cb-badge-primary {
+      background: rgba(57, 255, 20, 0.14);
+      color: var(--green-glow);
+      border: 1px solid rgba(57, 255, 20, 0.35);
+    }
+
+    .cb-badge-tech {
+      background: rgba(0, 230, 255, 0.1);
+      color: var(--cyan-glow);
+      border: 1px solid var(--border-cyan);
+    }
+
+    .cb-confidentiality {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      border-top: 1px solid rgba(57, 255, 20, 0.12);
+      padding-top: 0.85rem;
+      font-size: 0.86rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .cb-confidentiality i {
+      color: var(--orange-warm);
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    /* Architecture Pipeline */
+    .cb-pipeline-section {
+      border: 1px solid var(--border-subtle);
+      border-radius: 1rem;
+      background: rgba(3, 11, 9, 0.7);
+      backdrop-filter: blur(10px);
+      padding: clamp(1rem, 2vw, 1.4rem);
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    .cb-section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .cb-section-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-heading);
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--cyan-glow);
+    }
+
+    .cb-pipeline-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.85rem;
+    }
+
+    .cb-pipe-card {
+      position: relative;
+      border: 1px solid rgba(57, 255, 20, 0.22);
+      border-radius: 0.75rem;
+      background: rgba(5, 17, 14, 0.82);
+      padding: 0.95rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+    }
+
+    .cb-pipe-card:hover {
+      border-color: var(--border-active);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(57, 255, 20, 0.15);
+    }
+
+    .cb-pipe-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cb-pipe-step {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--orange-warm);
+      font-weight: 700;
+    }
+
+    .cb-pipe-icon {
+      color: var(--green-glow);
+      font-size: 1.15rem;
+    }
+
+    .cb-pipe-card strong {
+      font-family: var(--font-heading);
+      font-size: 1rem;
+      color: #fff;
+    }
+
+    .cb-pipe-card p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    /* Pipeline pulse animation track */
+    .cb-pipeline-track {
+      position: relative;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(57, 255, 20, 0.12);
+      overflow: hidden;
+      margin-top: 0.2rem;
+    }
+
+    .cb-pipeline-pulse {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 25%;
+      background: linear-gradient(90deg, transparent, var(--green-glow), var(--cyan-glow), transparent);
+      border-radius: 3px;
+      box-shadow: 0 0 14px var(--green-glow);
+    }
+
+    /* Main Workspace: Explorer Grid */
+    .cb-explorer-grid {
+      display: grid;
+      grid-template-columns: minmax(310px, 370px) minmax(0, 1fr);
+      gap: 1.4rem;
+      align-items: start;
+    }
+
+    /* Left Sidebar: Interactive System Map */
+    .cb-system-map {
+      border: 1px solid var(--border-subtle);
+      border-radius: 1rem;
+      background: rgba(3, 12, 10, 0.8);
+      backdrop-filter: blur(12px);
+      padding: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      position: sticky;
+      top: 1rem;
+      max-height: calc(100vh - 2rem);
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(57, 255, 20, 0.3) transparent;
+    }
+
+    .cb-map-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .cb-group-label {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--cyan-glow);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding-bottom: 0.25rem;
+      border-bottom: 1px solid rgba(0, 230, 255, 0.15);
+    }
+
+    .cb-node-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    .cb-node-btn {
+      width: 100%;
+      border: 1px solid rgba(57, 255, 20, 0.18);
+      border-radius: 0.65rem;
+      background: rgba(5, 17, 13, 0.75);
+      padding: 0.65rem 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      cursor: pointer;
+      text-align: left;
+      color: var(--text-main);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: inherit;
+    }
+
+    .cb-node-btn:hover {
+      border-color: rgba(57, 255, 20, 0.5);
+      background: rgba(57, 255, 20, 0.08);
+      transform: translateX(4px);
+    }
+
+    .cb-node-btn.is-active {
+      border-color: var(--green-glow);
+      background: rgba(57, 255, 20, 0.16);
+      box-shadow: 0 0 20px rgba(57, 255, 20, 0.22), inset 0 0 12px rgba(57, 255, 20, 0.1);
+      transform: translateX(6px);
+    }
+
+    .cb-node-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      min-width: 0;
+    }
+
+    .cb-node-tag {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--cyan-glow);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .cb-node-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cb-node-arrow {
+      color: rgba(57, 255, 20, 0.4);
+      font-size: 0.85rem;
+      transition: transform 0.2s;
+      flex-shrink: 0;
+    }
+
+    .cb-node-btn.is-active .cb-node-arrow {
+      color: var(--green-glow);
+      transform: translateX(3px);
+    }
+
+    /* Right Column: Screen Showcase */
+    .cb-showcase {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      min-width: 0;
+    }
+
+    /* Mockup Frame */
+    .cb-mockup-frame {
+      border: 1px solid rgba(0, 230, 255, 0.25);
+      border-radius: 1rem;
+      background: #0d1614;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 35px rgba(0, 230, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cb-mockup-bar {
+      height: 2.7rem;
+      background: rgba(2, 9, 7, 0.95);
+      border-bottom: 1px solid rgba(0, 230, 255, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1rem;
+      gap: 0.8rem;
+    }
+
+    .cb-mockup-dots {
+      display: flex;
+      gap: 0.42rem;
+    }
+
+    .cb-mockup-dot {
+      width: 0.68rem;
+      height: 0.68rem;
+      border-radius: 50%;
+    }
+
+    .cb-dot-red { background: #ff5f56; }
+    .cb-dot-yellow { background: #ffbd2e; }
+    .cb-dot-green { background: #27c93f; }
+
+    .cb-mockup-url {
+      flex: 1;
+      max-width: 540px;
+      height: 1.7rem;
+      border-radius: 0.45rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0 0.65rem;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .cb-mockup-url i {
+      color: var(--green-glow);
+      font-size: 0.78rem;
+    }
+
+    .cb-mockup-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .cb-zoom-btn {
+      background: rgba(57, 255, 20, 0.12);
+      border: 1px solid rgba(57, 255, 20, 0.35);
+      color: var(--green-glow);
+      border-radius: 0.45rem;
+      padding: 0.3rem 0.65rem;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.2s;
+    }
+
+    .cb-zoom-btn:hover {
+      background: rgba(57, 255, 20, 0.25);
+      border-color: var(--green-glow);
+      transform: scale(1.03);
+    }
+
+    /* Image stage */
+    .cb-image-stage {
+      position: relative;
+      background: #091210;
+      min-height: 380px;
+      display: grid;
+      place-items: center;
+      cursor: zoom-in;
+      overflow: hidden;
+    }
+
+    .cb-screen-image {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 780px;
+      object-fit: contain;
+      user-select: none;
+      -webkit-user-drag: none;
+      transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+    }
+
+    /* Screen Context Details Card */
+    .cb-details-card {
+      border: 1px solid var(--border-subtle);
+      border-radius: 1rem;
+      background: rgba(3, 12, 10, 0.85);
+      backdrop-filter: blur(12px);
+      padding: clamp(1.1rem, 2.2vw, 1.6rem);
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+    }
+
+    .cb-details-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .cb-title-area {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .cb-current-group {
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--green-glow);
+    }
+
+    .cb-current-title {
+      font-family: var(--font-heading);
+      font-size: clamp(1.3rem, 2.4vw, 1.85rem);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .cb-current-desc {
+      font-size: 0.96rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Flow breadcrumbs */
+    .cb-flow-breadcrumbs {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.65rem 0.9rem;
+      background: rgba(0, 230, 255, 0.05);
+      border: 1px solid rgba(0, 230, 255, 0.18);
+      border-radius: 0.65rem;
+    }
+
+    .cb-flow-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .cb-flow-item.is-current {
+      color: var(--green-glow);
+      font-weight: 700;
+    }
+
+    .cb-flow-sep {
+      color: rgba(0, 230, 255, 0.5);
+      font-size: 0.75rem;
+    }
+
+    /* Highlights list */
+    .cb-highlights-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0.65rem;
+    }
+
+    .cb-highlight-item {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.55rem 0.8rem;
+      border-radius: 0.5rem;
+      background: rgba(5, 19, 15, 0.65);
+      border: 1px solid rgba(57, 255, 20, 0.14);
+      font-size: 0.84rem;
+      color: var(--text-main);
+    }
+
+    .cb-highlight-item i {
+      color: var(--green-glow);
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+
+    /* Contextual Action Buttons */
+    .cb-nav-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      border-top: 1px solid rgba(57, 255, 20, 0.12);
+      padding-top: 1rem;
+    }
+
+    .cb-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.62rem 1.15rem;
+      border-radius: 0.55rem;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .cb-btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-main);
+    }
+
+    .cb-btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .cb-btn-primary {
+      background: linear-gradient(135deg, rgba(57, 255, 20, 0.2), rgba(0, 230, 255, 0.18));
+      border: 1px solid var(--border-active);
+      color: var(--green-glow);
+      box-shadow: 0 0 20px rgba(57, 255, 20, 0.2);
+    }
+
+    .cb-btn-primary:hover {
+      background: linear-gradient(135deg, rgba(57, 255, 20, 0.35), rgba(0, 230, 255, 0.3));
+      box-shadow: 0 0 28px rgba(57, 255, 20, 0.4);
+      transform: translateY(-1px);
+    }
+
+    /* Lightbox modal for zoom */
+    .cb-lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(1, 6, 5, 0.95);
+      backdrop-filter: blur(16px);
+      display: none;
+      place-items: center;
+      padding: 1.5rem;
+    }
+
+    .cb-lightbox.is-open {
+      display: grid;
+    }
+
+    .cb-lightbox-content {
+      position: relative;
+      max-width: 96vw;
+      max-height: 94vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .cb-lightbox-img {
+      max-width: 100%;
+      max-height: 88vh;
+      border-radius: 0.75rem;
+      border: 1px solid var(--border-cyan);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(0, 230, 255, 0.2);
+      object-fit: contain;
+    }
+
+    .cb-lightbox-close {
+      position: absolute;
+      top: -2.8rem;
+      right: 0;
+      background: rgba(57, 255, 20, 0.15);
+      border: 1px solid var(--border-active);
+      color: var(--green-glow);
+      width: 2.2rem;
+      height: 2.2rem;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .cb-lightbox-close:hover {
+      background: rgba(57, 255, 20, 0.35);
+      transform: scale(1.1);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 980px) {
+      .cb-pipeline-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .cb-explorer-grid {
+        grid-template-columns: 1fr;
+      }
+      .cb-system-map {
+        position: static;
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .cb-pipeline-grid {
+        grid-template-columns: 1fr;
+      }
+      .cb-container {
+        padding: 0.75rem;
+        gap: 1rem;
+      }
+      .cb-mockup-url {
+        display: none;
+      }
+      .cb-nav-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .cb-action-btn {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="cb-container">
+
+    <!-- Encabezado del Sistema -->
+    <header class="cb-header">
+      <div class="cb-header-top">
+        <div class="cb-brand-wrap">
+          <div class="cb-logo-badge" aria-hidden="true">
+            <i class="bi bi-boxes"></i>
+          </div>
+          <div class="cb-brand-text">
+            <h1>{{ system_name }}</h1>
+            <p>{{ tagline }}</p>
+          </div>
+        </div>
+        <div class="cb-badges">
+          <span class="cb-badge cb-badge-primary"><i class="bi bi-shield-check"></i> Proyecto Empresarial</span>
+          <span class="cb-badge cb-badge-tech"><i class="bi bi-code-square"></i> Django · SQL Server · Kotlin</span>
+        </div>
+      </div>
+      <div class="cb-confidentiality">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        <span>{{ confidentiality_note }}</span>
+      </div>
+    </header>
+
+    <!-- Macro Arquitectura Funcional: Flujo de Datos -->
+    <section class="cb-pipeline-section" aria-label="Flujo de arquitectura funcional">
+      <div class="cb-section-heading">
+        <span class="cb-section-title"><i class="bi bi-diagram-3-fill"></i> Flujo Funcional del Ecosistema</span>
+        <span class="cb-badge cb-badge-tech">Captura en Terreno → Gestión y Análisis</span>
+      </div>
+      <div class="cb-pipeline-grid">
+        <article class="cb-pipe-card">
+          <div class="cb-pipe-header">
+            <span class="cb-pipe-step">FASE 01</span>
+            <i class="bi bi-phone cb-pipe-icon" aria-hidden="true"></i>
+          </div>
+          <strong>Captura en Terreno</strong>
+          <p>App Android (Kotlin + SQLite) en modo offline-first. Escaneo de tarjas, control de pesaje y prevención de duplicados.</p>
+        </article>
+
+        <article class="cb-pipe-card">
+          <div class="cb-pipe-header">
+            <span class="cb-pipe-step">FASE 02</span>
+            <i class="bi bi-arrow-repeat cb-pipe-icon" aria-hidden="true"></i>
+          </div>
+          <strong>API / Servidor</strong>
+          <p>Backend Django REST Framework. Sincronización automática de lotes, validación de integridad y lógica de negocio.</p>
+        </article>
+
+        <article class="cb-pipe-card">
+          <div class="cb-pipe-header">
+            <span class="cb-pipe-step">FASE 03</span>
+            <i class="bi bi-database cb-pipe-icon" aria-hidden="true"></i>
+          </div>
+          <strong>Persistencia Central</strong>
+          <p>Base de datos relacional SQL Server. Trazabilidad completa de bins, cuadrillas, transportes y pesajes.</p>
+        </article>
+
+        <article class="cb-pipe-card">
+          <div class="cb-pipe-header">
+            <span class="cb-pipe-step">FASE 04</span>
+            <i class="bi bi-display cb-pipe-icon" aria-hidden="true"></i>
+          </div>
+          <strong>Dashboard Web</strong>
+          <p>Panel web centralizador. Consultas en tiempo real, reportes operacionales, vistas de detalle y auditoría histórica.</p>
+        </article>
+      </div>
+      <div class="cb-pipeline-track" aria-hidden="true">
+        <div id="pipeline-pulse" class="cb-pipeline-pulse"></div>
+      </div>
+    </section>
+
+    <!-- Explorador Interactivo: Mapa del Sistema + Visor de Capturas -->
+    <div class="cb-explorer-grid">
+
+      <!-- Columna Izquierda: Mapa de Nodos del Dashboard -->
+      <aside class="cb-system-map" aria-label="Mapa de navegación del dashboard">
+        <div class="cb-map-group">
+          <span class="cb-group-label"><i class="bi bi-door-open"></i> Acceso</span>
+          <div class="cb-node-list">
+            <button type="button" class="cb-node-btn" data-screen-id="login">
+              <div class="cb-node-info">
+                <span class="cb-node-tag">Acceso</span>
+                <span class="cb-node-title">Inicio de sesión</span>
+              </div>
+              <i class="bi bi-chevron-right cb-node-arrow" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="cb-map-group">
+          <span class="cb-group-label"><i class="bi bi-speedometer2"></i> Dashboard Principal</span>
+          <div class="cb-node-list">
+            <button type="button" class="cb-node-btn is-active" data-screen-id="dashboard">
+              <div class="cb-node-info">
+                <span class="cb-node-tag">Métricas</span>
+                <span class="cb-node-title">Panel principal</span>
+              </div>
+              <i class="bi bi-chevron-right cb-node-arrow" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="cb-map-group">
+          <span class="cb-group-label"><i class="bi bi-activity"></i> Operación Activa</span>
+          <div class="cb-node-list">
+            <button type="button" class="cb-node-btn" data-screen-id="dispatch-report">
+              <div class="cb-node-info">
+                <span class="cb-node-tag">Despachos</span>
+                <span class="cb-node-title">Reporte de despachos</span>
+              </div>
+              <i class="bi bi-chevron-right cb-node-arrow" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="cb-node-btn" data-screen-id="dispatch-detail">
+              <div class="cb-node-info">
+                <span class="cb-node-tag">Despachos</span>
+                <span class="cb-node-title">Detalle de despacho</span>
+              </div>
+              <i class="bi bi-chevron-right cb-node-arrow" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="cb-node-btn" data-screen-id="bins-report">
+              <div class="cb-node-info">
+                <span class="cb-node-tag">Bins</span>
+                <span class="cb-node-title">Reporte de Bins</span>
+              </div>
+              <i class="bi bi-chevron-right cb-node-arrow" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="cb-node-btn" data-screen-id="seed-count">
+              <div class="cb-node-info">
+                <span class="cb-node-tag">Semillas</span>
+                <span class="cb-node-title">Conteo de semillas</span>
+              </div>
+              <i class="bi bi-chevron-right cb-node-arrow" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="cb-node-btn" data-screen-id="timeline">
+              <div class="cb-node-info">
+                <span class="cb-node-tag">Análisis Temporal</span>
+                <span class="cb-node-title">Línea de tiempo</span>
+              </div>
+              <i class="bi bi-chevron-right cb-node-arrow" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="cb-map-group">
+          <span class="cb-group-label"><i class="bi bi-clock-history"></i> Análisis Histórico</span>
+          <div class="cb-node-list">
+            <button type="button" class="cb-node-btn" data-screen-id="bins-history">
+              <div class="cb-node-info">
+                <span class="cb-node-tag">Históricos</span>
+                <span class="cb-node-title">Histórico de Bins</span>
+              </div>
+              <i class="bi bi-chevron-right cb-node-arrow" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="cb-node-btn" data-screen-id="dispatch-history">
+              <div class="cb-node-info">
+                <span class="cb-node-tag">Históricos</span>
+                <span class="cb-node-title">Histórico de Despachos</span>
+              </div>
+              <i class="bi bi-chevron-right cb-node-arrow" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="cb-node-btn" data-screen-id="dispatch-history-detail">
+              <div class="cb-node-info">
+                <span class="cb-node-tag">Históricos</span>
+                <span class="cb-node-title">Detalle histórico despacho</span>
+              </div>
+              <i class="bi bi-chevron-right cb-node-arrow" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="cb-node-btn" data-screen-id="seed-history">
+              <div class="cb-node-info">
+                <span class="cb-node-tag">Históricos</span>
+                <span class="cb-node-title">Histórico de Semillas</span>
+              </div>
+              <i class="bi bi-chevron-right cb-node-arrow" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="cb-node-btn" data-screen-id="field-history">
+              <div class="cb-node-info">
+                <span class="cb-node-tag">Análisis Calidad</span>
+                <span class="cb-node-title">Color por Cuartel</span>
+              </div>
+              <i class="bi bi-chevron-right cb-node-arrow" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="cb-map-group">
+          <span class="cb-group-label"><i class="bi bi-question-circle"></i> Evidencia Secundaria</span>
+          <div class="cb-node-list">
+            <button type="button" class="cb-node-btn" data-screen-id="not-found">
+              <div class="cb-node-info">
+                <span class="cb-node-tag">Manejo UX</span>
+                <span class="cb-node-title">Página no encontrada (404)</span>
+              </div>
+              <i class="bi bi-chevron-right cb-node-arrow" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Columna Derecha: Visor de Captura Real y Detalles -->
+      <section class="cb-showcase" aria-label="Visualizador de pantalla">
+
+        <!-- Marco de Navegador Simulado -->
+        <article class="cb-mockup-frame">
+          <div class="cb-mockup-bar">
+            <div class="cb-mockup-dots" aria-hidden="true">
+              <span class="cb-mockup-dot cb-dot-red"></span>
+              <span class="cb-mockup-dot cb-dot-yellow"></span>
+              <span class="cb-mockup-dot cb-dot-green"></span>
+            </div>
+            <div class="cb-mockup-url">
+              <i class="bi bi-lock-fill" aria-hidden="true"></i>
+              <span id="mockup-url-text">https://controlbins.local/dashboard/</span>
+            </div>
+            <div class="cb-mockup-actions">
+              <button id="zoom-trigger-btn" class="cb-zoom-btn" type="button" title="Ver captura a pantalla completa">
+                <i class="bi bi-arrows-fullscreen"></i>
+                <span>Ampliar</span>
+              </button>
+            </div>
+          </div>
+          <div id="image-stage" class="cb-image-stage" title="Haz clic para ampliar la captura">
+            <img id="active-screen-img" class="cb-screen-image" src="" alt="Captura real del sistema ControlBins" loading="eager" draggable="false">
+          </div>
+        </article>
+
+        <!-- Tarjeta de Contexto Operacional y Acciones -->
+        <article class="cb-details-card">
+          <div class="cb-details-header">
+            <div class="cb-title-area">
+              <span id="active-screen-group" class="cb-current-group">Dashboard</span>
+              <h2 id="active-screen-title" class="cb-current-title">Panel principal</h2>
+            </div>
+            <span id="active-screen-badge" class="cb-badge cb-badge-primary">Métricas & Accesos</span>
+          </div>
+
+          <p id="active-screen-desc" class="cb-current-desc">
+            Cargando información...
+          </p>
+
+          <div class="cb-flow-breadcrumbs" id="active-screen-flow" aria-label="Ruta de navegación">
+            <!-- Rellenado dinámicamente -->
+          </div>
+
+          <div class="cb-highlights-list" id="active-screen-highlights">
+            <!-- Rellenado dinámicamente -->
+          </div>
+
+          <div class="cb-nav-actions">
+            <button id="prev-screen-btn" class="cb-action-btn cb-btn-secondary" type="button">
+              <i class="bi bi-chevron-left" aria-hidden="true"></i>
+              <span>Anterior</span>
+            </button>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button id="context-action-btn" class="cb-action-btn cb-btn-primary" type="button" hidden>
+                <span>Acción contextual</span>
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+              </button>
+              <button id="next-screen-btn" class="cb-action-btn cb-btn-secondary" type="button">
+                <span>Siguiente</span>
+                <i class="bi bi-chevron-right" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+        </article>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- Modal Lightbox para Zoom de Captura -->
+  <div id="lightbox-modal" class="cb-lightbox" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="cb-lightbox-content">
+      <button id="lightbox-close-btn" class="cb-lightbox-close" type="button" aria-label="Cerrar imagen ampliada">
+        <i class="bi bi-x-lg"></i>
+      </button>
+      <img id="lightbox-img" class="cb-lightbox-img" src="" alt="Captura ampliada">
+    </div>
+  </div>
+
+  <!-- Anime.js desde CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+  <!-- Datos y Script del Visor -->
+  <script>
+    const SCREENS = {{ screens_json|safe }};
+    let activeIndex = 1; // Default to 'dashboard' (index 1)
+
+    const imgElement = document.getElementById("active-screen-img");
+    const titleElement = document.getElementById("active-screen-title");
+    const groupElement = document.getElementById("active-screen-group");
+    const badgeElement = document.getElementById("active-screen-badge");
+    const descElement = document.getElementById("active-screen-desc");
+    const flowElement = document.getElementById("active-screen-flow");
+    const highlightsElement = document.getElementById("active-screen-highlights");
+    const urlTextElement = document.getElementById("mockup-url-text");
+    const prevBtn = document.getElementById("prev-screen-btn");
+    const nextBtn = document.getElementById("next-screen-btn");
+    const contextActionBtn = document.getElementById("context-action-btn");
+    const nodeButtons = document.querySelectorAll("[data-screen-id]");
+    const lightboxModal = document.getElementById("lightbox-modal");
+    const lightboxImg = document.getElementById("lightbox-img");
+    const lightboxClose = document.getElementById("lightbox-close-btn");
+    const zoomTriggerBtn = document.getElementById("zoom-trigger-btn");
+    const imageStage = document.getElementById("image-stage");
+
+    function updateScreen(index, animate = true) {
+      if (index < 0 || index >= SCREENS.length) return;
+      activeIndex = index;
+      const screen = SCREENS[index];
+
+      // Update Node active state
+      nodeButtons.forEach(btn => {
+        const isActive = btn.dataset.screenId === screen.id;
+        btn.classList.toggle("is-active", isActive);
+        if (isActive && window.innerWidth > 980) {
+          btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
+
+      // Update Content
+      titleElement.textContent = screen.title;
+      groupElement.textContent = screen.group || "Módulo";
+      badgeElement.textContent = screen.badge || screen.group;
+      descElement.textContent = screen.description;
+      urlTextElement.textContent = `https://controlbins.local/dashboard/${screen.id}/`;
+
+      // Flow breadcrumbs
+      flowElement.innerHTML = (screen.flow || []).map((step, idx, arr) => {
+        const isCurrent = idx === arr.length - 1;
+        return `
+          <span class="cb-flow-item ${isCurrent ? 'is-current' : ''}">
+            ${step}
+          </span>
+          ${idx < arr.length - 1 ? '<i class="bi bi-chevron-right cb-flow-sep" aria-hidden="true"></i>' : ''}
+        `;
+      }).join("");
+
+      // Highlights
+      highlightsElement.innerHTML = (screen.highlights || []).map(h => `
+        <div class="cb-highlight-item">
+          <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+          <span>${h}</span>
+        </div>
+      `).join("");
+
+      // Nav buttons
+      prevBtn.disabled = index === 0;
+      prevBtn.style.opacity = index === 0 ? "0.4" : "1";
+      nextBtn.disabled = index === SCREENS.length - 1;
+      nextBtn.style.opacity = index === SCREENS.length - 1 ? "0.4" : "1";
+
+      // Context action button (e.g., jump to detail or related tool)
+      if (screen.next_label && screen.next) {
+        contextActionBtn.hidden = false;
+        contextActionBtn.querySelector("span").textContent = screen.next_label;
+        contextActionBtn.onclick = () => {
+          const targetIdx = SCREENS.findIndex(s => s.id === screen.next);
+          if (targetIdx !== -1) updateScreen(targetIdx);
+        };
+      } else if (screen.prev_label && screen.prev) {
+        contextActionBtn.hidden = false;
+        contextActionBtn.querySelector("span").textContent = screen.prev_label;
+        contextActionBtn.onclick = () => {
+          const targetIdx = SCREENS.findIndex(s => s.id === screen.prev);
+          if (targetIdx !== -1) updateScreen(targetIdx);
+        };
+      } else {
+        contextActionBtn.hidden = true;
+      }
+
+      // Animate image transition
+      if (animate && typeof anime !== "undefined") {
+        anime({
+          targets: imgElement,
+          opacity: [0.3, 1],
+          scale: [0.985, 1],
+          duration: 320,
+          easing: "easeOutQuad",
+          begin: () => {
+            imgElement.src = screen.src;
+          }
+        });
+      } else {
+        imgElement.src = screen.src;
+      }
+    }
+
+    // Event listeners for node buttons
+    nodeButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.screenId;
+        const targetIdx = SCREENS.findIndex(s => s.id === id);
+        if (targetIdx !== -1) updateScreen(targetIdx);
+      });
+    });
+
+    prevBtn.addEventListener("click", () => updateScreen(activeIndex - 1));
+    nextBtn.addEventListener("click", () => updateScreen(activeIndex + 1));
+
+    // Lightbox / Zoom
+    function openLightbox() {
+      const screen = SCREENS[activeIndex];
+      lightboxImg.src = screen.src;
+      lightboxModal.classList.add("is-open");
+      lightboxModal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeLightbox() {
+      lightboxModal.classList.remove("is-open");
+      lightboxModal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+    }
+
+    imageStage.addEventListener("click", openLightbox);
+    zoomTriggerBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openLightbox();
+    });
+    lightboxClose.addEventListener("click", closeLightbox);
+    lightboxModal.addEventListener("click", (e) => {
+      if (e.target === lightboxModal) closeLightbox();
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && lightboxModal.classList.contains("is-open")) {
+        closeLightbox();
+      }
+      if (!lightboxModal.classList.contains("is-open")) {
+        if (e.key === "ArrowRight") updateScreen(activeIndex + 1);
+        if (e.key === "ArrowLeft") updateScreen(activeIndex - 1);
+      }
+    });
+
+    // Pipeline runner animation with Anime.js
+    if (typeof anime !== "undefined") {
+      const pulse = document.getElementById("pipeline-pulse");
+      if (pulse) {
+        anime({
+          targets: pulse,
+          translateX: ["-100%", "400%"],
+          duration: 2400,
+          easing: "easeInOutSine",
+          loop: true
+        });
+      }
+    }
+
+    // Initial render
+    const initialIndex = SCREENS.findIndex(s => s.id === "dashboard");
+    updateScreen(initialIndex !== -1 ? initialIndex : 0, false);
+  </script>
+</body>
+</html>

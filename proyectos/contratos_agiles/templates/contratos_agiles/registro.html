@@ -1,0 +1,65 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Registro | Contratos Agiles{% endblock %}
+{% block body_class %}login-page{% endblock %}
+
+{% block shell %}
+<section class="auth-card">
+    <div class="auth-logo">
+        <span class="brand-mark" style="width: 110px; height: 110px; font-size: 34px;">CA</span>
+    </div>
+    <div class="auth-copy">
+        <h1>Crear usuario</h1>
+        <p>Registra una cuenta local para acceder al sistema.</p>
+        <form id="registerForm" class="grid" style="margin-top: 22px;">
+            {% csrf_token %}
+            <div class="field">
+                <label for="username">Nombre de usuario</label>
+                <input type="text" id="username" name="username" autocomplete="username" required>
+            </div>
+            <div class="field">
+                <label for="password">Contrasena</label>
+                <input type="password" id="password" name="password" autocomplete="new-password" required>
+            </div>
+            <div id="message" class="alert" style="display: none;"></div>
+            <button type="button" class="btn accent" onclick="submitRegisterForm()">Registrar</button>
+            <a class="btn secondary" href="{% url 'contratos_agiles:login' %}">Volver</a>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function submitRegisterForm() {
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+        const message = document.getElementById("message");
+
+        if (!username || !password) {
+            message.style.display = "block";
+            message.className = "alert error";
+            message.innerText = "Completa todos los campos.";
+            return;
+        }
+
+        const data = new FormData();
+        data.append("username", username);
+        data.append("password", password);
+        data.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+
+        fetch("{% url 'contratos_agiles:register' %}", {method: "POST", body: data})
+            .then(response => response.json())
+            .then(response => {
+                message.style.display = "block";
+                message.className = response.status === "success" ? "alert" : "alert error";
+                message.innerText = response.message || "Solicitud procesada.";
+            })
+            .catch(() => {
+                message.style.display = "block";
+                message.className = "alert error";
+                message.innerText = "Ocurrio un error. Intentalo nuevamente.";
+            });
+    }
+</script>
+{% endblock %}

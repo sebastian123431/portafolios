@@ -1,0 +1,32 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Contratos | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Contratos</h1>
+        <p>Sube plantillas, genera contratos individuales o procesa lotes completos.</p>
+    </div>
+    <a class="btn secondary" href="{% url 'contratos_agiles:menu' %}">Volver</a>
+</header>
+
+<section class="grid cards-grid">
+    <a class="quick-action" href="{% url 'contratos_agiles:seleccionar_contrato' %}">
+        <strong>Generar contrato</strong>
+        <span>Selecciona trabajador, plantilla y fechas para crear un PDF.</span>
+    </a>
+    <a class="quick-action" href="{% url 'contratos_agiles:subir_contrato' %}">
+        <strong>Subir contrato</strong>
+        <span>Agrega nuevas plantillas DOCX al sistema.</span>
+    </a>
+    <a class="quick-action" href="{% url 'contratos_agiles:listar_contratos' %}">
+        <strong>Ver contratos</strong>
+        <span>Consulta y previsualiza las plantillas disponibles.</span>
+    </a>
+    <a class="quick-action" href="{% url 'contratos_agiles:generar_contratos_masivos' %}">
+        <strong>Contratos masivos</strong>
+        <span>Genera documentos para varios trabajadores y descarga ZIP.</span>
+    </a>
+</section>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Perfil de trabajador | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>{{ trabajador.nombre }} {{ trabajador.apellido }}</h1>
+        <p>{{ trabajador.rut }} | {{ trabajador.correo }}</p>
+    </div>
+    <div class="actions">
+        <a class="btn" href="{% url 'contratos_agiles:generar_contrato_especifico' trabajador.id %}">Generar contrato</a>
+        <a class="btn secondary" href="{% url 'contratos_agiles:asignar_cargo' trabajador.id %}">Asignar cargo</a>
+        <a class="btn secondary" href="{% url 'contratos_agiles:visualizar_trabajadores' %}">Volver</a>
+    </div>
+</header>
+
+<section class="grid stats-grid">
+    <article class="card stat">
+        <span>Estado</span>
+        <strong>{% if trabajador_vigente %}Vigente{% else %}No vigente{% endif %}</strong>
+    </article>
+    <article class="card stat">
+        <span>Cargos</span>
+        <strong>{{ cargos.count }}</strong>
+    </article>
+    <article class="card stat">
+        <span>Contratos</span>
+        <strong>{{ contratos.count }}</strong>
+    </article>
+</section>
+
+<section class="grid content-grid">
+    <article class="card">
+        <div class="card-header"><h2>Ficha personal</h2></div>
+        <div class="card-body">
+            <div class="list">
+                {% if trabajador.foto %}
+                    <img class="avatar" src="{{ trabajador.foto.url }}" alt="{{ trabajador.nombre }}">
+                {% endif %}
+                <div class="list-row"><span>Direccion</span><strong>{{ trabajador.direccion }}</strong></div>
+                <div class="list-row"><span>Telefono</span><strong>{{ trabajador.telefono }}</strong></div>
+                <div class="list-row"><span>AFP</span><strong>{{ trabajador.afp }}</strong></div>
+                <div class="list-row"><span>Estado civil</span><strong>{{ trabajador.estado_civil }}</strong></div>
+                <div class="list-row"><span>Nacimiento</span><strong>{{ trabajador.fecha_nacimiento }}</strong></div>
+                <div class="list-row"><span>Prevision</span><strong>{{ trabajador.previcion_salud }}</strong></div>
+            </div>
+        </div>
+    </article>
+
+    <article class="card">
+        <div class="card-header"><h2>Editar ficha</h2></div>
+        <form class="card-body" method="post" action="{% url 'contratos_agiles:editar_perfil' trabajador.id %}">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="form-actions">
+                <button type="submit" class="btn accent">Guardar cambios</button>
+            </div>
+        </form>
+    </article>
+</section>
+
+<section class="grid content-grid" style="margin-top: 18px;">
+    <article class="card">
+        <div class="card-header"><h2>Cargos</h2></div>
+        <div class="card-body list">
+            {% for cargo in cargos %}
+                <div class="list-row">
+                    <div>
+                        <strong>{{ cargo.labor }}</strong>
+                        <br><small>Ingreso: {{ cargo.fecha_ingreso }} | Sueldo: ${{ cargo.sueldo }}</small>
+                        {% if cargo.observaciones %}<br><small>{{ cargo.observaciones }}</small>{% endif %}
+                    </div>
+                    <span class="badge">{{ cargo.vigente }}</span>
+                </div>
+            {% empty %}
+                <p class="empty-state">No hay cargos asignados.</p>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="card">
+        <div class="card-header"><h2>Contratos asociados</h2></div>
+        <div class="card-body list">
+            {% for contrato in contratos %}
+                <div class="list-row">
+                    <div>
+                        <strong>{{ contrato.ArchivoContrato.nombre }}</strong>
+                        <br><small>{{ contrato.fecha_inicio }} a {{ contrato.fecha_termino }}</small>
+                    </div>
+                    {% for archivo in contrato.archivos.all %}
+                        <a class="btn secondary" href="{{ archivo.archivo.url }}" download>PDF</a>
+                    {% empty %}
+                        <span class="empty-state">Sin archivo</span>
+                    {% endfor %}
+                </div>
+            {% empty %}
+                <p class="empty-state">No hay contratos asociados.</p>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+
+<section class="grid content-grid" style="margin-top: 18px;">
+    <article class="card">
+        <div class="card-header"><h2>Asistencias</h2></div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for asistencia in asistencias %}
+                        <tr>
+                            <td>{{ asistencia.fecha }}</td>
+                            <td>{% if asistencia.presente %}Presente{% else %}Ausente{% endif %}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="2" class="empty-state">No hay asistencias registradas.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <article class="card">
+        <div class="card-header"><h2>Extender vigencia</h2></div>
+        <form class="card-body" method="post" action="{% url 'contratos_agiles:extender_vigencia' trabajador.id %}">
+            {% csrf_token %}
+            <div class="grid">
+                {% for cargo_form in cargo_forms %}
+                    <div class="card-body" style="border: 1px solid var(--line); border-radius: var(--radius);">
+                        {{ cargo_form.as_p }}
+                    </div>
+                {% endfor %}
+                {% for contrato_form in contrato_forms %}
+                    <div class="card-body" style="border: 1px solid var(--line); border-radius: var(--radius);">
+                        {{ contrato_form.as_p }}
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn accent">Actualizar vigencia</button>
+            </div>
+        </form>
+    </article>
+</section>
+{% endblock %}

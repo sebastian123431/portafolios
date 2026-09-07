@@ -1,0 +1,69 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Reportes | Contratos Agiles{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Reportes</h1>
+        <p>Indicadores rapidos sobre prevision, AFP y distribucion por ano de nacimiento.</p>
+    </div>
+    <a class="btn secondary" href="{% url 'contratos_agiles:menu' %}">Volver</a>
+</header>
+
+<section class="grid cards-grid">
+    <article class="card">
+        <div class="card-header"><h2>Prevision de salud</h2></div>
+        <div class="card-body"><canvas id="previcionSaludChart"></canvas></div>
+    </article>
+    <article class="card">
+        <div class="card-header"><h2>AFP</h2></div>
+        <div class="card-body"><canvas id="afpChart"></canvas></div>
+    </article>
+    <article class="card">
+        <div class="card-header"><h2>Nacimiento por ano</h2></div>
+        <div class="card-body"><canvas id="nacimientoChart"></canvas></div>
+    </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const previcionSaludData = {{ previcion_salud_data|safe }};
+        const afpData = {{ afp_data|safe }};
+        const nacimientoData = {{ nacimiento_data|safe }};
+        const palette = ["#255f85", "#13795b", "#e0a91b", "#7c3aed", "#c2410c", "#475467"];
+
+        new Chart(document.getElementById("previcionSaludChart"), {
+            type: "bar",
+            data: {
+                labels: previcionSaludData.map(item => item.previcion_salud),
+                datasets: [{label: "Trabajadores", data: previcionSaludData.map(item => item.count), backgroundColor: "#255f85"}]
+            },
+            options: {responsive: true, scales: {y: {beginAtZero: true}}}
+        });
+
+        new Chart(document.getElementById("afpChart"), {
+            type: "doughnut",
+            data: {
+                labels: afpData.map(item => item.afp),
+                datasets: [{data: afpData.map(item => item.count), backgroundColor: palette}]
+            },
+            options: {responsive: true}
+        });
+
+        new Chart(document.getElementById("nacimientoChart"), {
+            type: "bar",
+            data: {
+                labels: nacimientoData.map(item => item.year),
+                datasets: [{label: "Trabajadores", data: nacimientoData.map(item => item.count), backgroundColor: "#13795b"}]
+            },
+            options: {responsive: true, scales: {y: {beginAtZero: true}}}
+        });
+    });
+</script>
+{% endblock %}

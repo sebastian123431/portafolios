@@ -1,0 +1,99 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Registrar asistencia | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Registrar asistencia</h1>
+        <p>Captura una imagen para reconocer al trabajador y marcar presencia.</p>
+    </div>
+    <div class="actions">
+        <a class="btn secondary" href="{% url 'contratos_agiles:ver_asistencia' %}">Ver dashboard</a>
+        <a class="btn secondary" href="{% url 'contratos_agiles:menu' %}">Volver</a>
+    </div>
+</header>
+
+<section class="grid content-grid">
+    <article class="card">
+        <div class="card-header"><h2>Camara</h2></div>
+        <div class="card-body camera-box">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <video id="video" autoplay playsinline></video>
+            <div id="welcome-message" class="alert" style="display: none;">
+                <span id="welcome-text"></span>
+            </div>
+            <button id="capture" class="btn accent" type="button">Registrar asistencia</button>
+            <button id="end-attendance" class="btn secondary" type="button">Terminar asistencia</button>
+        </div>
+    </article>
+    <article class="card">
+        <div class="card-header"><h2>Presentes</h2></div>
+        <div class="card-body">
+            <div id="present-list" class="list">
+                {% for trabajador in trabajadores_presentes %}
+                    <div class="list-row">{{ trabajador.nombre }} {{ trabajador.apellido }}</div>
+                {% empty %}
+                    <p class="empty-state">Aun no hay presentes registrados.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const video = document.getElementById("video");
+    const captureButton = document.getElementById("capture");
+    const endAttendanceButton = document.getElementById("end-attendance");
+    const welcomeMessage = document.getElementById("welcome-message");
+    const welcomeText = document.getElementById("welcome-text");
+    const presentList = document.getElementById("present-list");
+
+    navigator.mediaDevices.getUserMedia({video: true})
+        .then(stream => { video.srcObject = stream; })
+        .catch(() => {
+            welcomeMessage.className = "alert error";
+            welcomeMessage.style.display = "block";
+            welcomeText.textContent = "No se pudo acceder a la camara.";
+        });
+
+    captureButton.addEventListener("click", () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        fetch("{% url 'contratos_agiles:registrar_asistencia_por_imagen' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": document.querySelector("input[name=csrfmiddlewaretoken]").value
+            },
+            body: new URLSearchParams({image: canvas.toDataURL("image/jpeg")})
+        })
+            .then(response => response.json())
+            .then(data => {
+                welcomeMessage.className = data.status === "success" ? "alert" : "alert error";
+                welcomeMessage.style.display = "block";
+                welcomeText.textContent = data.message;
+                if (data.status === "success") {
+                    const item = document.createElement("div");
+                    item.className = "list-row";
+                    item.textContent = data.message;
+                    presentList.appendChild(item);
+                }
+            })
+            .catch(() => {
+                welcomeMessage.className = "alert error";
+                welcomeMessage.style.display = "block";
+                welcomeText.textContent = "No se pudo enviar la imagen.";
+            });
+    });
+
+    endAttendanceButton.addEventListener("click", () => {
+        window.location.href = "{% url 'contratos_agiles:listar_asistencia_trabajadores_registrados' %}";
+    });
+</script>
+{% endblock %}

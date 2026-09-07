@@ -1,0 +1,30 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Previsualizar contrato | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Previsualizacion de contrato</h1>
+        <p>Revisa el contenido extraido antes de continuar.</p>
+    </div>
+    <a class="btn secondary" href="{% url 'contratos_agiles:menu_contratos' %}">Volver</a>
+</header>
+
+<section class="preview-document">
+    {% if html_content %}
+        <div class="contract-content">{{ html_content|safe }}</div>
+    {% elif contrato_url %}
+        {% if extension == 'pdf' %}
+            <iframe src="{{ contrato_url }}" width="100%" height="720" title="Contrato"></iframe>
+        {% else %}
+            <p class="empty-state">Este archivo esta disponible para descarga.</p>
+            <div class="form-actions">
+                <a class="btn" href="{{ contrato_url }}" download>Descargar</a>
+            </div>
+        {% endif %}
+    {% else %}
+        <p class="empty-state">No hay contenido para previsualizar.</p>
+    {% endif %}
+</section>
+{% endblock %}

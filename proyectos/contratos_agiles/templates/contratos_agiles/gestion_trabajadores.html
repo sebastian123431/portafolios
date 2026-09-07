@@ -1,0 +1,48 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Gestion de trabajadores | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Gestion de trabajadores</h1>
+        <p>Revisa trabajadores vigentes y no vigentes.</p>
+    </div>
+    <a class="btn secondary" href="{% url 'contratos_agiles:menu_trabajadores' %}">Volver</a>
+</header>
+
+<section class="grid content-grid">
+    <article class="card">
+        <div class="card-header"><h2>Vigentes</h2></div>
+        <div class="card-body list">
+            {% for trabajador in trabajadores_vigentes %}
+                <div class="list-row">
+                    <div><strong>{{ trabajador.nombre }} {{ trabajador.apellido }}</strong><br><small>{{ trabajador.rut }}</small></div>
+                    <form action="{% url 'contratos_agiles:cambiar_vigencia' trabajador.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn danger">Marcar no vigente</button>
+                    </form>
+                </div>
+            {% empty %}
+                <p class="empty-state">No hay trabajadores vigentes.</p>
+            {% endfor %}
+        </div>
+    </article>
+    <article class="card">
+        <div class="card-header"><h2>No vigentes</h2></div>
+        <div class="card-body list">
+            {% for trabajador in trabajadores_no_vigentes %}
+                <div class="list-row">
+                    <div><strong>{{ trabajador.nombre }} {{ trabajador.apellido }}</strong><br><small>{{ trabajador.rut }}</small></div>
+                    <form action="{% url 'contratos_agiles:cambiar_vigencia' trabajador.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn success">Marcar vigente</button>
+                    </form>
+                </div>
+            {% empty %}
+                <p class="empty-state">No hay trabajadores no vigentes.</p>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+{% endblock %}

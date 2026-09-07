@@ -1,0 +1,40 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Trabajadores | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Trabajadores</h1>
+        <p>Gestiona fichas, cargos, importaciones, exportaciones y correos.</p>
+    </div>
+    <a class="btn secondary" href="{% url 'contratos_agiles:menu' %}">Volver</a>
+</header>
+
+<section class="grid cards-grid">
+    <a class="quick-action" href="{% url 'contratos_agiles:registrar_trabajador' %}">
+        <strong>Registrar trabajador</strong>
+        <span>Crear una ficha individual con foto, correo y datos personales.</span>
+    </a>
+    <a class="quick-action" href="{% url 'contratos_agiles:visualizar_trabajadores' %}">
+        <strong>Visualizar trabajadores</strong>
+        <span>Revisar la nomina y acceder al perfil de cada trabajador.</span>
+    </a>
+    <a class="quick-action" href="{% url 'contratos_agiles:importar_trabajadores' %}">
+        <strong>Importar Excel/CSV</strong>
+        <span>Cargar trabajadores desde planillas con mapeo de columnas.</span>
+    </a>
+    <a class="quick-action" href="{% url 'contratos_agiles:exportar_trabajadores' %}">
+        <strong>Exportar Excel</strong>
+        <span>Descargar la base de trabajadores en formato XLSX.</span>
+    </a>
+    <a class="quick-action" href="{% url 'contratos_agiles:enviar_correos_masivos' %}">
+        <strong>Correo bienvenida</strong>
+        <span>Enviar mensaje masivo a trabajadores pendientes.</span>
+    </a>
+    <a class="quick-action" href="{% url 'contratos_agiles:enviar_correos' %}">
+        <strong>Correo reingreso</strong>
+        <span>Invitar a trabajadores no vigentes a volver.</span>
+    </a>
+</section>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Subir contrato | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Subir contrato</h1>
+        <p>Agrega una plantilla DOCX para generar contratos desde los datos del sistema.</p>
+    </div>
+    <a class="btn secondary" href="{% url 'contratos_agiles:listar_contratos' %}">Ver contratos</a>
+</header>
+
+<section class="card form-card">
+    <form class="card-body" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-grid">
+            <div class="field">
+                <label for="{{ form.nombre.id_for_label }}">Nombre</label>
+                {{ form.nombre }}
+            </div>
+            <div class="field">
+                <label for="{{ form.archivo.id_for_label }}">Archivo</label>
+                {{ form.archivo }}
+            </div>
+            <div class="field full">
+                <label for="{{ form.descripcion.id_for_label }}">Descripcion</label>
+                {{ form.descripcion }}
+            </div>
+        </div>
+        {% if form.errors %}
+            <div class="alert error">Revisa los campos del formulario.</div>
+        {% endif %}
+        <div class="form-actions">
+            <a class="btn secondary" href="{% url 'contratos_agiles:menu_contratos' %}">Cancelar</a>
+            <button class="btn accent" type="submit">Subir contrato</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

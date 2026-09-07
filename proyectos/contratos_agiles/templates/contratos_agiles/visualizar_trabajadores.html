@@ -1,0 +1,100 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Lista de trabajadores | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Lista de trabajadores</h1>
+        <p>Busca por nombre, apellido o RUT y entra al perfil laboral.</p>
+    </div>
+    <div class="actions">
+        <a class="btn" href="{% url 'contratos_agiles:registrar_trabajador' %}">Nuevo trabajador</a>
+        <a class="btn secondary" href="{% url 'contratos_agiles:exportar_trabajadores' %}">Exportar Excel</a>
+    </div>
+</header>
+
+<section class="card">
+    <div class="card-body">
+        <div class="field" style="max-width: 420px;">
+            <label for="search-term">Buscar trabajador</label>
+            <input type="search" id="search-term" placeholder="Nombre, apellido o RUT">
+        </div>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>RUT</th>
+                    <th>Contacto</th>
+                    <th>AFP</th>
+                    <th>Salud</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="trabajadores-table">
+                {% for trabajador in trabajadores %}
+                    <tr>
+                        <td><strong>{{ trabajador.nombre }} {{ trabajador.apellido }}</strong><br><small>{{ trabajador.direccion }}</small></td>
+                        <td>{{ trabajador.rut }}</td>
+                        <td>{{ trabajador.telefono }}<br><small>{{ trabajador.correo }}</small></td>
+                        <td>{{ trabajador.afp }}</td>
+                        <td>{{ trabajador.previcion_salud }}</td>
+                        <td>
+                            <div class="actions">
+                                <a class="btn secondary" href="{% url 'contratos_agiles:perfil_trabajador' trabajador.id %}">Perfil</a>
+                                <a class="btn secondary" href="{% url 'contratos_agiles:asignar_cargo' trabajador.id %}">Cargo</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="empty-state">No hay trabajadores registrados.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const tableBody = document.getElementById("trabajadores-table");
+    const searchInput = document.getElementById("search-term");
+
+    function renderRows(trabajadores) {
+        tableBody.innerHTML = "";
+        if (!trabajadores.length) {
+            tableBody.innerHTML = '<tr><td colspan="6" class="empty-state">No hay resultados.</td></tr>';
+            return;
+        }
+        trabajadores.forEach(trabajador => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td><strong>${trabajador.nombre || ""} ${trabajador.apellido || ""}</strong><br><small>${trabajador.direccion || ""}</small></td>
+                <td>${trabajador.rut || ""}</td>
+                <td>${trabajador.telefono || ""}<br><small>${trabajador.correo || ""}</small></td>
+                <td>${trabajador.afp || ""}</td>
+                <td>${trabajador.previcion_salud || ""}</td>
+                <td>
+                    <div class="actions">
+                        <a class="btn secondary" href="${trabajador.perfil_url}">Perfil</a>
+                        <a class="btn secondary" href="${trabajador.cargo_url}">Cargo</a>
+                    </div>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    function fetchTrabajadores(query) {
+        fetch(`{% url "contratos_agiles:buscar_trabajadores" %}?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => renderRows(data.trabajadores || []));
+    }
+
+    searchInput.addEventListener("input", function () {
+        fetchTrabajadores(this.value);
+    });
+</script>
+{% endblock %}

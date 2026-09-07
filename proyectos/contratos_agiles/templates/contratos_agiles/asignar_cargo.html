@@ -1,0 +1,47 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Asignar cargo | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Asignar cargo</h1>
+        <p>{{ trabajador.nombre }} {{ trabajador.apellido }}</p>
+    </div>
+    <a class="btn secondary" href="{% url 'contratos_agiles:perfil_trabajador' trabajador.id %}">Volver al perfil</a>
+</header>
+
+<section class="card form-card">
+    <form class="card-body" method="post">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="alert error">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="form-grid">
+            <div class="field">
+                <label for="{{ form.labor.id_for_label }}">Labor</label>
+                {{ form.labor }}
+            </div>
+            <div class="field">
+                <label for="{{ form.fecha_ingreso.id_for_label }}">Fecha de ingreso</label>
+                {{ form.fecha_ingreso }}
+            </div>
+            <div class="field">
+                <label for="{{ form.sueldo.id_for_label }}">Sueldo</label>
+                {{ form.sueldo }}
+            </div>
+            <div class="field">
+                <label for="{{ form.vigente.id_for_label }}">Vigencia</label>
+                {{ form.vigente }}
+            </div>
+            <div class="field full">
+                <label for="{{ form.observaciones.id_for_label }}">Observaciones</label>
+                {{ form.observaciones }}
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn accent">Guardar cargo</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Dashboard de asistencia | Contratos Agiles{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Dashboard de asistencia</h1>
+        <p>Filtra por fecha y revisa presentes junto al resumen acumulado.</p>
+    </div>
+    <a class="btn secondary" href="{% url 'contratos_agiles:registrar_asistencia' %}">Registrar</a>
+</header>
+
+<section class="grid content-grid">
+    <article class="card">
+        <div class="card-header"><h2>Filtro</h2></div>
+        <form class="card-body" method="GET" action="{% url 'contratos_agiles:ver_asistencia' %}">
+            <div class="field">
+                <label for="date">Fecha</label>
+                <input type="date" id="date" name="date" value="{{ fecha_seleccionada }}">
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn accent">Filtrar</button>
+            </div>
+        </form>
+        <div class="card-body">
+            <h3>Presentes el {{ fecha_seleccionada }}</h3>
+            <div class="list" style="margin-top: 12px;">
+                {% for trabajador in trabajadores_presentes %}
+                    <div class="list-row">{{ trabajador.nombre }} {{ trabajador.apellido }}</div>
+                {% empty %}
+                    <p class="empty-state">No hay presentes para esta fecha.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </article>
+    <article class="card">
+        <div class="card-header"><h2>Resumen</h2></div>
+        <div class="card-body">
+            <canvas id="asistenciaChart"></canvas>
+        </div>
+    </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    new Chart(document.getElementById("asistenciaChart"), {
+        type: "bar",
+        data: {
+            labels: {{ nombres|safe }},
+            datasets: [
+                {label: "Presentes", data: {{ total_presentes|safe }}, backgroundColor: "#13795b"},
+                {label: "Ausentes", data: {{ total_ausentes|safe }}, backgroundColor: "#b42318"}
+            ]
+        },
+        options: {responsive: true, scales: {y: {beginAtZero: true}}}
+    });
+</script>
+{% endblock %}

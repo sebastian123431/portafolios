@@ -1,0 +1,24 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Correo de bienvenida | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Correo de bienvenida</h1>
+        <p>Envia el mensaje inicial a trabajadores pendientes.</p>
+    </div>
+    <a class="btn secondary" href="{% url 'contratos_agiles:menu_trabajadores' %}">Volver</a>
+</header>
+
+<section class="card form-card">
+    <form class="card-body" method="post" action="{% url 'contratos_agiles:enviar_correos_masivos' %}">
+        {% csrf_token %}
+        <input type="hidden" name="estado" value="no_vigente">
+        <p class="empty-state">Se enviara el correo a trabajadores marcados como no enviados.</p>
+        <div class="form-actions">
+            <button type="submit" class="btn accent">Enviar correos</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

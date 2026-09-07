@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Contratos Agiles{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'contratos_agiles/css/app.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    {% block shell %}
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand" href="{% url 'contratos_agiles:menu' %}">
+                <span class="brand-mark">CA</span>
+                <span>
+                    <strong>Contratos Agiles</strong>
+                    <small>Fundo La Campana</small>
+                </span>
+            </a>
+            <nav class="nav-list">
+                <a href="{% url 'contratos_agiles:menu' %}">Inicio</a>
+                <a href="{% url 'contratos_agiles:menu_trabajadores' %}">Trabajadores</a>
+                <a href="{% url 'contratos_agiles:menu_contratos' %}">Contratos</a>
+                <a href="{% url 'contratos_agiles:reportes' %}">Reportes</a>
+                <a href="{% url 'contratos_agiles:registrar_asistencia' %}">Asistencia</a>
+            </nav>
+        </aside>
+        <main class="main-content">
+            {% for message in messages %}
+                <div class="alert{% if message.tags == 'error' %} error{% endif %}" role="status">{{ message }}</div>
+            {% endfor %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% endblock %}
+    {% block scripts %}{% endblock %}
+</body>
+</html>

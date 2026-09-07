@@ -1,0 +1,23 @@
+{% extends 'contratos_agiles/base.html' %}
+
+{% block title %}Correo de reingreso | Contratos Agiles{% endblock %}
+
+{% block content %}
+<header class="page-header">
+    <div>
+        <h1>Correo de reingreso</h1>
+        <p>Envia una invitacion a trabajadores con cargo no vigente.</p>
+    </div>
+    <a class="btn secondary" href="{% url 'contratos_agiles:menu_trabajadores' %}">Volver</a>
+</header>
+
+<section class="card form-card">
+    <form class="card-body" method="post" action="{% url 'contratos_agiles:enviar_correos' %}">
+        {% csrf_token %}
+        <p class="empty-state">El sistema buscara trabajadores asociados a cargos no vigentes.</p>
+        <div class="form-actions">
+            <button type="submit" class="btn accent">Enviar correos</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

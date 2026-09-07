@@ -15,7 +15,9 @@ export async function samplePortrait(image, canvas, options = {}) {
 
   const imageData = ctx.getImageData(0, 0, width, height);
   const fallbackEdges = detectEdges(imageData, width, height);
-  const opencvEdges = await enhanceEdgesWithOpenCV(imageData, width, height);
+  const opencvEdges = options.useOpenCV === false
+    ? null
+    : await enhanceEdgesWithOpenCV(imageData, width, height);
   const edges = opencvEdges ? blendEdges(fallbackEdges, opencvEdges) : fallbackEdges;
 
   return { imageData, edges, width, height, edgeSource: opencvEdges ? "opencv" : "fallback" };
