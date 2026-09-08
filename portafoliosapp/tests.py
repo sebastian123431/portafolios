@@ -125,7 +125,7 @@ class PortfolioViewTests(TestCase):
         controlbins = projects["children"][0]
         self.assertEqual(controlbins["actions"][0]["href"], reverse("controlbins_study"))
 
-    def test_contratos_agiles_is_embedded_as_degree_project(self):
+    def test_contratos_agiles_is_embedded_as_enterprise_project(self):
         response = self.client.get("/")
         bubbles = json.loads(response.context["bubbles_json"])
         projects = next(node for node in bubbles if node["id"] == "projects")
@@ -133,8 +133,8 @@ class PortfolioViewTests(TestCase):
         action = case["actions"][0]
 
         self.assertEqual(case["label"], "Contratos Ágiles")
-        self.assertEqual(case["badge"], "Proyecto de Título")
-        self.assertIn("Proyecto de Título", case["minuta"]["title"])
+        self.assertEqual(case["badge"], "Proyecto empresarial")
+        self.assertIn("Proyecto empresarial", case["minuta"]["title"])
         self.assertIn("Django", case["architecture"])
         self.assertEqual(action["type"], "live-demo")
         self.assertEqual(action["href"], reverse("contratos_agiles:login"))

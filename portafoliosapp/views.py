@@ -417,21 +417,20 @@ def index(request):
         "label": "Contratos Ágiles",
         "icon": "bi-file-earmark-text",
         "kind": "case",
-        "badge": "Proyecto de Título",
+        "badge": "Proyecto empresarial",
         "content": (
-            "Sistema web desarrollado como Proyecto de Título de Ingeniería en Informática, "
-            "orientado a digitalizar y automatizar la generación de contratos laborales y la "
-            "gestión de trabajadores temporales."
+            "Sistema web empresarial orientado a digitalizar y automatizar la "
+            "generación de contratos laborales y la gestión de trabajadores temporales."
         ),
         "text": "Automatización contractual con Django, JavaScript, HTML5, CSS3 y base de datos relacional.",
         "minuta": {
-            "title": "Proyecto de Título",
+            "title": "Proyecto empresarial",
             "summary": (
                 "Plataforma web para centralizar información laboral, administrar trabajadores, "
                 "utilizar plantillas contractuales y apoyar procesos administrativos de contratación."
             ),
             "points": [
-                "Desarrollado en equipo como trabajo final de Ingeniería en Informática.",
+                "Desarrollado en equipo como solución de software para gestión empresarial y agrícola.",
                 "Integra vistas de gestión, procesos documentales y módulos administrativos.",
                 "Prioriza orden de datos, continuidad de flujo y reducción de errores manuales.",
             ],
@@ -487,7 +486,7 @@ def index(request):
                 "icon": "bi-lightbulb",
                 "items": [
                     "Fortalecí criterio para integrar backend, vistas, datos y procesos documentales en una solución completa.",
-                    "Aprendí a comunicar decisiones técnicas dentro de un proyecto académico con alcance funcional real.",
+                    "Fortalecí habilidades para comunicar decisiones técnicas dentro de un proyecto empresarial con alcance funcional real.",
                 ],
             },
         ],
@@ -499,7 +498,7 @@ def index(request):
             "Base de datos relacional",
             "Automatización documental",
         ],
-        "tags": ["Proyecto de Título", "Django", "JavaScript", "Gestión contractual", "Automatización documental"],
+        "tags": ["Proyecto empresarial", "Django", "JavaScript", "Gestión contractual", "Automatización documental"],
         "actions": [
             {
                 "label": "Ver proyecto",
