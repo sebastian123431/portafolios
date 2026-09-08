@@ -18,9 +18,11 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include, path
+from django.views.generic.base import RedirectView
 from portafoliosapp import views as app_views
 
 urlpatterns = [
+    path('favicon.ico', RedirectView.as_view(url='/static/portafoliosapp/images/favicon.ico', permanent=True)),
     path("proyectos/contratos-agiles/", include("proyectos.contratos_agiles.urls")),
     path("proyectos/controlbins/", app_views.controlbins_study, name="controlbins_study"),
     path('admin/', admin.site.urls),

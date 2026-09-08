@@ -1,4 +1,4 @@
-﻿{% load static %}
+{% load static %}
 <!doctype html>
 <html lang="es">
 
@@ -7,6 +7,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Bibliograf&iacute;a profesional de {{ name }} con retrato digital interactivo.">
   <title>Bibliograf&iacute;a - {{ name }}</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'portafoliosapp/images/favicon.svg' %}">
+  <link rel="alternate icon" type="image/png" href="{% static 'portafoliosapp/images/favicon.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'portafoliosapp/images/apple-touch-icon.png' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
